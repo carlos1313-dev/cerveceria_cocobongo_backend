@@ -16,6 +16,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -49,6 +51,8 @@ public class InstallmentEntity {
 	private SaleEntity sale;
 
 	@Column(name = "amount", nullable = false, precision = 10, scale = 2)
+	@NotNull(message = "El monto es obligatorio")
+	@Positive(message = "El monto debe ser positivo")
 	private BigDecimal amount;
 
 	@Column(name = "payment_date", nullable = false)

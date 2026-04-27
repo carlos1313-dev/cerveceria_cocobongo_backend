@@ -11,6 +11,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Size;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -38,6 +40,8 @@ public class Session {
     private User user;
 
     @Column(name = "token", nullable = false, unique = true, length = 512)
+    @NotNull(message = "El token es obligatorio")
+    @Size(max = 512, message = "El token no puede exceder 512 caracteres")
     private String token;
 
     @Column(name = "created_at", nullable = false)

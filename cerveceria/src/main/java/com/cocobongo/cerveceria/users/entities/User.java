@@ -13,6 +13,9 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -45,12 +48,16 @@ public class User {
     private BranchEntity branch;
 
     @Column(name = "name", nullable = false, length = 100)
+    @NotBlank(message = "El nombre del usuario es obligatorio")
     private String name;
 
     @Column(name = "email", nullable = false, unique = true, length = 100)
+    @NotBlank(message = "El email es obligatorio")
+    @Email(message = "El formato del email no es válido")
     private String email;
 
     @Column(name = "password_hash", nullable = false, length = 255)
+    @NotBlank(message = "El hash de contraseña es obligatorio")
     private String passwordHash;
 
     @Enumerated(EnumType.STRING)

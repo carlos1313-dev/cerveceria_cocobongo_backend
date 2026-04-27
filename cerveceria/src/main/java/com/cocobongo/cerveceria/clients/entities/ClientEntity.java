@@ -8,6 +8,9 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -29,16 +32,19 @@ public class ClientEntity {
 	private Long idClient;
 
 	@Column(name = "name", nullable = false, length = 100)
+	@NotBlank(message = "El nombre del cliente es obligatorio")
 	private String name;
 
 	@Column(name = "telephone", length = 20)
 	private String telephone;
 
 	@Column(name = "email", length = 100)
+	@Email(message = "El formato del email no es válido")
 	private String email;
 
 	@Builder.Default
 	@Column(name = "balance", nullable = false, precision = 10, scale = 2)
+	@PositiveOrZero(message = "El saldo no puede ser negativo")
 	private BigDecimal balance = BigDecimal.ZERO;
 
 	@Builder.Default

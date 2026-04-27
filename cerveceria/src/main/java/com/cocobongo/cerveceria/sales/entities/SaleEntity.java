@@ -15,6 +15,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -68,6 +70,8 @@ public class SaleEntity {
 
     @Builder.Default
     @Column(name = "total", nullable = false, precision = 10, scale = 2)
+    @NotNull(message = "El total es obligatorio")
+    @PositiveOrZero(message = "El total no puede ser negativo")
     private BigDecimal total = BigDecimal.ZERO;
 
     @Enumerated(EnumType.STRING)

@@ -14,6 +14,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -62,6 +63,7 @@ public class OutgoingEntity {
     private LocalDate date;
 
     @Column(name = "total", nullable = false, precision = 10, scale = 2)
+    @Positive(message = "El total del egreso debe ser positivo")
     private BigDecimal total;
 
     @Column(name = "description")

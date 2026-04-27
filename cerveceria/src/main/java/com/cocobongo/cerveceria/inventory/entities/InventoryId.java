@@ -4,6 +4,7 @@ import java.io.Serializable;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Embeddable;
+import jakarta.validation.constraints.NotNull;
 import lombok.AllArgsConstructor;
 import lombok.EqualsAndHashCode;
 import lombok.Getter;
@@ -19,8 +20,10 @@ import lombok.Setter;
 public class InventoryId implements Serializable {
 
     @Column(name = "id_product")
-    private Long idProduct;
+@NotNull(message = "El ID del producto es obligatorio")
+	private Long idProduct;
 
     @Column(name = "id_branch")
+    @NotNull(message = "El ID de la sucursal es obligatorio")
     private Long idBranch;
 }

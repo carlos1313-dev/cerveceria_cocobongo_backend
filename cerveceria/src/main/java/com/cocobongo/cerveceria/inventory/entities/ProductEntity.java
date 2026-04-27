@@ -13,6 +13,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotBlank;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -44,6 +46,7 @@ public class ProductEntity {
 	private ProviderEntity provider;
 
 	@Column(name = "name", nullable = false, length = 100)
+	@NotBlank(message = "El nombre del producto es obligatorio")
 	private String name;
 
 	@Column(name = "description")
@@ -56,10 +59,12 @@ public class ProductEntity {
 
 	@Builder.Default
 	@Column(name = "cost", nullable = false, precision = 10, scale = 2)
+	@PositiveOrZero(message = "El costo no puede ser negativo")
 	private BigDecimal cost = BigDecimal.ZERO;
 
 	@Builder.Default
 	@Column(name = "price", nullable = false, precision = 10, scale = 2)
+	@PositiveOrZero(message = "El precio no puede ser negativo")
 	private BigDecimal price = BigDecimal.ZERO;
 
 	@Builder.Default

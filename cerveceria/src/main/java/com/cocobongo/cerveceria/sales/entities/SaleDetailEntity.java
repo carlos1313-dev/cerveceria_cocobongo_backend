@@ -10,6 +10,8 @@ import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Positive;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -41,11 +43,14 @@ public class SaleDetailEntity {
     private ProductEntity product;
 
     @Column(name = "quantity", nullable = false)
+    @Positive(message = "La cantidad debe ser positiva")
     private Integer quantity;
 
     @Column(name = "unit_price", nullable = false, precision = 10, scale = 2)
+    @PositiveOrZero(message = "El precio unitario no puede ser negativo")
     private BigDecimal unitPrice;
 
     @Column(name = "subtotal", nullable = false, precision = 10, scale = 2)
+    @PositiveOrZero(message = "El subtotal no puede ser negativo")
     private BigDecimal subtotal;
 }

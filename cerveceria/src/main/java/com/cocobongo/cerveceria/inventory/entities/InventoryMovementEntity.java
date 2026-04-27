@@ -14,6 +14,8 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.Positive;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -71,6 +73,8 @@ public class InventoryMovementEntity {
 	private MovementReason reason;
 
 	@Column(name = "quantity", nullable = false)
+	@NotNull(message = "La cantidad es obligatoria")
+	@Positive(message = "La cantidad debe ser positiva")
 	private Integer quantity;
 
 	@Column(name = "movement_date", nullable = false)

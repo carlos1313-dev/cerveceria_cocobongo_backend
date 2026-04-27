@@ -6,6 +6,8 @@ import jakarta.persistence.GeneratedValue;
 import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -27,6 +29,7 @@ public class ProviderEntity {
 	private Long idProvider;
 
 	@Column(name = "name", nullable = false, length = 100)
+	@NotBlank(message = "El nombre del proveedor es obligatorio")
 	private String name;
 
 	@Column(name = "telephone", length = 20)
@@ -36,6 +39,7 @@ public class ProviderEntity {
 	private String address;
 
 	@Column(name = "email", length = 100)
+	@Email(message = "El formato del email no es válido")
 	private String email;
 
 	@Builder.Default

@@ -10,6 +10,7 @@ import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
 import jakarta.persistence.MapsId;
 import jakarta.persistence.Table;
+import jakarta.validation.constraints.PositiveOrZero;
 import lombok.AllArgsConstructor;
 import lombok.Builder;
 import lombok.Getter;
@@ -40,9 +41,11 @@ public class InventoryEntity {
 
 	@Builder.Default
 	@Column(name = "stock", nullable = false)
+	@PositiveOrZero(message = "El stock no puede ser negativo")
 	private Integer stock = 0;
 
 	@Builder.Default
 	@Column(name = "min_stock", nullable = false)
+	@PositiveOrZero(message = "El stock mínimo no puede ser negativo")
 	private Integer minStock = 0;
 }
