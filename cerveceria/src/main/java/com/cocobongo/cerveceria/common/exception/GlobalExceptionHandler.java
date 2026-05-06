@@ -6,6 +6,7 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.AccessDeniedException;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.validation.FieldError;
+import org.springframework.validation.ObjectError;
 import org.springframework.web.bind.MethodArgumentNotValidException;
 import org.springframework.web.bind.annotation.ExceptionHandler;
 import org.springframework.web.bind.annotation.RestControllerAdvice;
@@ -22,16 +23,27 @@ public class GlobalExceptionHandler {
             MethodArgumentNotValidException ex) {
  
         Map<String, String> errors = new HashMap<>();
+        
         ex.getBindingResult().getAllErrors().forEach(error -> {
-            String field   = ((FieldError) error).getField();
             String message = error.getDefaultMessage();
-            errors.put(field, message);
+            
+            // Manejar errores de campo (validación en atributo individual)
+            if (error instanceof FieldError) {
+                String field = ((FieldError) error).getField();
+                errors.put(field, message);
+            } 
+            // Manejar errores globales (validación a nivel de objeto)
+            else if (error instanceof ObjectError) {
+                String objectName = error.getObjectName();
+                errors.put("global:" + objectName, message);
+            }
         });
+        
         return ResponseEntity
                 .status(HttpStatus.BAD_REQUEST)
-                .body(ApiResponse.error("Errores de validación"));
+                .body(ApiResponse.error("Errores de validación", errors));
     }
- 
+
     // Recurso no encontrado
     @ExceptionHandler(ResourceNotFoundException.class)
     public ResponseEntity<ApiResponse<Void>> handleNotFound(ResourceNotFoundException ex) {
