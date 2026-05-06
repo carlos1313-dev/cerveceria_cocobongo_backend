@@ -1,48 +1,46 @@
 package com.cocobongo.cerveceria.inventory.entities;
 
-import jakarta.persistence.Column;
-import jakarta.persistence.Entity;
-import jakarta.persistence.GeneratedValue;
-import jakarta.persistence.GenerationType;
-import jakarta.persistence.Id;
-import jakarta.persistence.Table;
-import jakarta.validation.constraints.Email;
-import jakarta.validation.constraints.NotBlank;
-import lombok.AllArgsConstructor;
-import lombok.Builder;
-import lombok.Getter;
-import lombok.NoArgsConstructor;
-import lombok.Setter;
+import jakarta.persistence.*;
+import jakarta.validation.constraints.*;
+import lombok.Data;
 
-@Getter
-@Setter
-@Builder
-@NoArgsConstructor
-@AllArgsConstructor
 @Entity
 @Table(name = "provider")
+@Data 
 public class ProviderEntity {
 
-	@Id
-	@GeneratedValue(strategy = GenerationType.IDENTITY)
-	@Column(name = "id_provider")
-	private Long idProvider;
+    @Id
+    @GeneratedValue(strategy = GenerationType.IDENTITY)
+    @Column(name = "id_provider")
+    private Integer idProvider;
 
-	@Column(name = "name", nullable = false, length = 100)
-	@NotBlank(message = "El nombre del proveedor es obligatorio")
-	private String name;
+    // Nombre obligatorio
+    @NotNull(message = "Name is required")
+    @Column(name = "name", nullable = false, length = 100)
+    private String name;
 
-	@Column(name = "telephone", length = 20)
-	private String telephone;
+    // Teléfono opcional con validación
+    @Column(name = "telephone", length = 20)
+    @Pattern(
+        regexp = "^[0-9\\s\\+\\-\\(\\)]{7,20}$",
+        message = "Invalid telephone format"
+    )
+    private String telephone;
 
-	@Column(name = "address")
-	private String address;
+    // Dirección opcional
+    @Column(name = "address", columnDefinition = "TEXT")
+    private String address;
 
-	@Column(name = "email", length = 100)
-	@Email(message = "El formato del email no es válido")
-	private String email;
+    // Email opcional pero válido si viene
+    @Column(name = "email", length = 100)
+    @Email(
+        regexp = "^[A-Za-z0-9._%+\\-]+@[A-Za-z0-9.\\-]+\\.[A-Za-z]{2,}$",
+        message = "Invalid email format"
+    )
+    private String email;
 
-	@Builder.Default
-	@Column(name = "is_active", nullable = false)
-	private Boolean isActive = true;
+    // Soft delete
+    @NotNull
+    @Column(name = "is_active", nullable = false)
+    private Boolean isActive = true;
 }
