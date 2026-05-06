@@ -59,7 +59,7 @@ public class SaleEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_user", nullable = false)
-    private User user;
+    private UserEntity user;
 
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(name = "id_client")
