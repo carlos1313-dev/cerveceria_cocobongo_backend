@@ -4,7 +4,7 @@ import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
 import com.cocobongo.cerveceria.sales.entities.SaleEntity;
-import com.cocobongo.cerveceria.users.entities.User;
+import com.cocobongo.cerveceria.users.entities.UserEntity;
 
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;

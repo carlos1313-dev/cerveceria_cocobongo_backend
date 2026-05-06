@@ -5,7 +5,7 @@ import lombok.Data;
 
 /** PUT /auth/change-password */
 @Data
-class ChangePasswordRequest {
+public class ChangePasswordRequest {
     @NotBlank
     private String currentPassword;
  

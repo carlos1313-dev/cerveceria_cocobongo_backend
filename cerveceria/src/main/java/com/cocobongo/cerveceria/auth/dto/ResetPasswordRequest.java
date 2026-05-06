@@ -5,7 +5,7 @@ import lombok.Data;
 
 /** POST /auth/reset-password */
 @Data
-class ResetPasswordRequest {
+public class ResetPasswordRequest {
     @NotBlank
     private String token;
  

@@ -3,7 +3,7 @@ import lombok.Data;
 
 /** Respuesta de login */
 @Data
-class LoginResponse {
+public class LoginResponse {
     private String token;
     private String role;
     private String email;

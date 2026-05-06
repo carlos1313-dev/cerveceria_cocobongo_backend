@@ -2,7 +2,7 @@ package com.cocobongo.cerveceria.sales.entities;
 
 import com.cocobongo.cerveceria.branches.entities.BranchEntity;
 import com.cocobongo.cerveceria.clients.entities.ClientEntity;
-import com.cocobongo.cerveceria.users.entities.User;
+import com.cocobongo.cerveceria.users.entities.UserEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;

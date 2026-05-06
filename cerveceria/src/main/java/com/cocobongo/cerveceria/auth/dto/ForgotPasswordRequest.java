@@ -4,7 +4,7 @@ import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
 /** POST /auth/forgot-password */
 @Data
-class ForgotPasswordRequest {
+public class ForgotPasswordRequest {
     @NotBlank
     @Email
     private String email;

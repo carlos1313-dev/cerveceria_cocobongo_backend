@@ -4,7 +4,7 @@ import com.cocobongo.cerveceria.users.entities.Role;
 import lombok.Data;
 /** GET /auth/me */
 @Data
-class MeResponse {
+public class MeResponse {
     private Integer id;
     private String  name;
     private String  email;

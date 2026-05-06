@@ -1,7 +1,7 @@
 package com.cocobongo.cerveceria.outgoings.entities;
 
 import com.cocobongo.cerveceria.branches.entities.BranchEntity;
-import com.cocobongo.cerveceria.users.entities.User;
+import com.cocobongo.cerveceria.users.entities.UserEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -53,7 +53,7 @@ public class OutgoingEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_user", nullable = false)
-    private User user;
+    private UserEntity user;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20)
