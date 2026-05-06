@@ -19,9 +19,9 @@ spring:
 
   # ─── BASE DE DATOS POSTGRESQL ──────────────
   datasource:
-    url: jdbc:postgresql://localhost:5432/cocobongo_db
-    username: postgres
-    password: cesr1311
+    url: ${DATABASE_URL:jdbc:postgresql://localhost:5432/cocobongo_db}
+    username: ${DATABASE_USERNAME:postgres}
+    password: ${DATABASE_PASSWORD:cesr1311}
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
@@ -56,6 +56,11 @@ spring:
     prefix: classpath:/templates/
     suffix: .html
 
+# ─── APP CUSTOM PROPERTIES ──────────────────
+app:
+  jwt:
+    secret: ${JWT_SECRET:dev_secret_key_cambiar_en_produccion_minimo_256_bits}
+
 # ─── LOGGING ─────────────────────────────────
 logging:
   level:
@@ -83,9 +88,9 @@ spring:
       on-profile: prod
 
   datasource:
-    url: ${DATABASE_URL}            # Variable de entorno (seguridad)
-    username: ${DATABASE_USERNAME}
-    password: ${DATABASE_PASSWORD}
+    url: ${DATABASE_URL}            # Variable de entorno (requerida)
+    username: ${DATABASE_USERNAME}  # Variable de entorno (requerida)
+    password: ${DATABASE_PASSWORD}  # Variable de entorno (requerida)
     hikari:
       maximum-pool-size: 20
       minimum-idle: 10
@@ -105,6 +110,11 @@ spring:
   devtools:
     restart:
       enabled: false                # DevTools desactivado en producción
+
+# ─── APP CUSTOM PROPERTIES ──────────────────
+app:
+  jwt:
+    secret: ${JWT_SECRET}           # Variable de entorno (requerida)
 
 logging:
   level:
