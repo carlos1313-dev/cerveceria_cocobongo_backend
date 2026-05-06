@@ -125,10 +125,13 @@ public class AuthService implements UserDetailsService {
  
     @Transactional
     public void forgotPassword(ForgotPasswordRequest request, String ip) {
-        // En MVP: solo verificar que el correo exista y loguear el token temporal
-        UserEntity user = userRepository.findByEmail(request.getEmail())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "No existe una cuenta con ese correo"));
+        // No revelar si el correo existe: registrar auditoría y salir sin error.
+         UserEntity user = userRepository.findByEmail(request.getEmail()).orElse(null);
+         if (user == null) {
+             auditService.log(AuditService.PASSWORD_CHANGED, null, null, ip,
+                     "Solicitud de recuperación de contraseña para correo no registrado");
+             return;
+         }
  
         // Generar token temporal reutilizando JwtUtils con expiración corta
         // En producción: enviar por email. En MVP: se imprime en logs.
