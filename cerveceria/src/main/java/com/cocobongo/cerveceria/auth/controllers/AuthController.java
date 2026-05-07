@@ -86,7 +86,7 @@ public class AuthController {
                      .body(ApiResponse.ok("El token Bearer no puede estar vacío"));
          }
 
-         
+
         authService.logout(token, httpRequest.getRemoteAddr());
         return ResponseEntity.ok(ApiResponse.ok("Sesión cerrada correctamente"));
     }
@@ -118,15 +118,30 @@ public class AuthController {
     public ResponseEntity<ApiResponse<Void>> changePassword(
             @Valid @RequestBody ChangePasswordRequest request,
             @AuthenticationPrincipal UserEntity currentUser,
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader(value = "Authorization", required = false) String authHeader,
             HttpServletRequest httpRequest) {
- 
-        String token = authHeader.substring(7);
+
+        if (authHeader == null || authHeader.isBlank()) {
+            return ResponseEntity.status(401)
+                    .body(ApiResponse.error("El header Authorization es obligatorio"));
+        }
+
+        if (!authHeader.startsWith("Bearer ")) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("El header Authorization debe tener el formato 'Bearer <token>'"));
+        }
+
+        String token = authHeader.substring(7).trim();
+        if (token.isEmpty()) {
+            return ResponseEntity.badRequest()
+                    .body(ApiResponse.error("El token Bearer no puede estar vacío"));
+        }
+
         authService.changePassword(request, currentUser, token,
                 httpRequest.getRemoteAddr());
         return ResponseEntity.ok(ApiResponse.ok("Contraseña actualizada correctamente"));
     }
- 
+
     // ── GET /api/v1/auth/me ────────────────────────────────────────────────────
     @GetMapping("/auth/me")
     public ResponseEntity<ApiResponse<MeResponse>> me(
