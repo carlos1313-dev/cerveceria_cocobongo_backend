@@ -1,14 +1,7 @@
 package com.cocobongo.cerveceria.auth.controllers;
  
-import com.cocobongo.cerveceria.auth.dto.*;
-import com.cocobongo.cerveceria.auth.entities.AuditEntity;
-import com.cocobongo.cerveceria.users.entities.UserEntity;
-import com.cocobongo.cerveceria.auth.services.AuditService;
-import com.cocobongo.cerveceria.auth.services.AuthService;
-import com.cocobongo.cerveceria.common.dto.ApiResponse;
-import jakarta.servlet.http.HttpServletRequest;
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -16,9 +9,31 @@ import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
- 
-import java.time.LocalDateTime;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestHeader;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
+
+import com.cocobongo.cerveceria.auth.dto.ChangePasswordRequest;
+import com.cocobongo.cerveceria.auth.dto.ForgotPasswordRequest;
+import com.cocobongo.cerveceria.auth.dto.LoginRequest;
+import com.cocobongo.cerveceria.auth.dto.LoginResponse;
+import com.cocobongo.cerveceria.auth.dto.MeResponse;
+import com.cocobongo.cerveceria.auth.dto.RegisterRequest;
+import com.cocobongo.cerveceria.auth.dto.ResetPasswordRequest;
+import com.cocobongo.cerveceria.auth.entities.AuditEntity;
+import com.cocobongo.cerveceria.auth.services.AuditService;
+import com.cocobongo.cerveceria.auth.services.AuthService;
+import com.cocobongo.cerveceria.common.dto.ApiResponse;
+import com.cocobongo.cerveceria.users.entities.UserEntity;
+
+import jakarta.servlet.http.HttpServletRequest;
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
  
 @RestController
 @RequestMapping("/api/v1")
@@ -52,10 +67,26 @@ public class AuthController {
     // ── POST /api/v1/auth/logout ───────────────────────────────────────────────
     @PostMapping("/auth/logout")
     public ResponseEntity<ApiResponse<Void>> logout(
-            @RequestHeader("Authorization") String authHeader,
+            @RequestHeader(value = "Authorization", required = false) String authHeader, 
             HttpServletRequest httpRequest) {
  
-        String token = authHeader.substring(7);
+        if (authHeader == null || authHeader.isBlank()) {
+             return ResponseEntity.status(401)
+                     .body(ApiResponse.ok("El header Authorization es obligatorio"));
+         }
+ 
+         if (!authHeader.startsWith("Bearer ")) {
+             return ResponseEntity.badRequest()
+                     .body(ApiResponse.ok("El header Authorization debe tener el formato 'Bearer <token>'"));
+         }
+ 
+         String token = authHeader.substring(7).trim();
+         if (token.isEmpty()) {
+             return ResponseEntity.badRequest()
+                     .body(ApiResponse.ok("El token Bearer no puede estar vacío"));
+         }
+
+         
         authService.logout(token, httpRequest.getRemoteAddr());
         return ResponseEntity.ok(ApiResponse.ok("Sesión cerrada correctamente"));
     }
