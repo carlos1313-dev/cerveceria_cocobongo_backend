@@ -1,15 +1,7 @@
 package com.cocobongo.cerveceria.auth.services;
  
-import com.cocobongo.cerveceria.auth.dto.*;
-import com.cocobongo.cerveceria.users.entities.Role;
-import com.cocobongo.cerveceria.auth.entities.SessionEntity;
-import com.cocobongo.cerveceria.users.entities.UserEntity;
-import com.cocobongo.cerveceria.auth.repositories.SessionRepository;
-import com.cocobongo.cerveceria.users.repositories.UserRepository;
-import com.cocobongo.cerveceria.auth.utils.JwtUtils;
-import com.cocobongo.cerveceria.common.exception.BusinessException;
-import com.cocobongo.cerveceria.common.exception.ResourceNotFoundException;
-import lombok.RequiredArgsConstructor;
+import java.time.LocalDateTime;
+
 import org.springframework.security.authentication.AuthenticationManager;
 import org.springframework.security.authentication.BadCredentialsException;
 import org.springframework.security.authentication.UsernamePasswordAuthenticationToken;
@@ -19,8 +11,23 @@ import org.springframework.security.core.userdetails.UsernameNotFoundException;
 import org.springframework.security.crypto.password.PasswordEncoder;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
- 
-import java.time.LocalDateTime;
+
+import com.cocobongo.cerveceria.auth.dto.ChangePasswordRequest;
+import com.cocobongo.cerveceria.auth.dto.ForgotPasswordRequest;
+import com.cocobongo.cerveceria.auth.dto.LoginRequest;
+import com.cocobongo.cerveceria.auth.dto.LoginResponse;
+import com.cocobongo.cerveceria.auth.dto.RegisterRequest;
+import com.cocobongo.cerveceria.auth.dto.ResetPasswordRequest;
+import com.cocobongo.cerveceria.auth.entities.SessionEntity;
+import com.cocobongo.cerveceria.auth.repositories.SessionRepository;
+import com.cocobongo.cerveceria.auth.utils.JwtUtils;
+import com.cocobongo.cerveceria.common.exception.BusinessException;
+import com.cocobongo.cerveceria.common.exception.ResourceNotFoundException;
+import com.cocobongo.cerveceria.users.entities.Role;
+import com.cocobongo.cerveceria.users.entities.UserEntity;
+import com.cocobongo.cerveceria.users.repositories.UserRepository;
+
+import lombok.RequiredArgsConstructor;
  
 @Service
 @RequiredArgsConstructor
@@ -198,11 +205,11 @@ public class AuthService implements UserDetailsService {
                 passwordEncoder.encode(request.getNewPassword()));
         currentUser.setPasswordChangedAt(LocalDateTime.now());
         userRepository.save(currentUser);
- 
+
         // Revocar todas las sesiones excepto la actual para forzar re-login
-        // en otros dispositivos
-        sessionRepository.revokeAllByUserId(currentUser.getIdUser());
- 
+        // en otros dispositivos, pero mantener la sesión actual activa
+        sessionRepository.revokeAllByUserIdExceptToken(currentUser.getIdUser(), currentToken);
+
         auditService.log(AuditService.PASSWORD_CHANGED, currentUser, null, ip,
                 "Cambio de contraseña por el usuario");
     }
