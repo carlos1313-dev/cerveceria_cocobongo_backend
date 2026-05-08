@@ -18,7 +18,7 @@ public class InventoryResponseDTO {
 
     // Datos adicionales del producto (para respuesta)
     private String productName;
-    private ProductType productType;
+    private  ProductType productType;
 
     public InventoryResponseDTO() {}
 
