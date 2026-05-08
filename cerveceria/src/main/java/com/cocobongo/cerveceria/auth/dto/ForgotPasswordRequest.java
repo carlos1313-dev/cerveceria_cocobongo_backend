@@ -1,15 +1,11 @@
 package com.cocobongo.cerveceria.auth.dto;
-import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.Email;
+import jakarta.validation.constraints.NotBlank;
 import lombok.Data;
-
-/** POST /auth/login */
+/** POST /auth/forgot-password */
 @Data
-public class LoginRequest {
+public class ForgotPasswordRequest {
     @NotBlank
     @Email
     private String email;
- 
-    @NotBlank
-    private String password;
 }
