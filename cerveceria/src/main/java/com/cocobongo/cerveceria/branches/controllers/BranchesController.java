@@ -29,7 +29,7 @@ import org.springframework.web.bind.annotation.PathVariable;
 
 
 
-@PreAuthorize("hasrole('ADMIN')")
+@PreAuthorize("hasRole('ADMIN')")
 @RestController
 @RequestMapping("/api/v1/branches")
 @RequiredArgsConstructor
