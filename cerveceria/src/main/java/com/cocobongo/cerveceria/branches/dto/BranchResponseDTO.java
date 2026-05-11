@@ -11,14 +11,14 @@ public class BranchResponseDTO {
           private String name;
           private String address;
           private String city;
-          private Boolean is_active;
+          private Boolean isActive;
 
           public BranchResponseDTO(BranchEntity b ){
                     this.id = b.getIdBranch();
                     this.name = b.getName();
                     this.address = b.getAddress();
                     this.city = b.getCity();
-                    this.is_active = b.getIsActive();
+                    this.isActive = b.getIsActive();
           }
 
 }
