@@ -39,7 +39,7 @@ public class BranchesController {
 
     @GetMapping
     public ResponseEntity<ApiResponse<Page<BranchResponseDTO>>> getAll(
-            @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
+            @PageableDefault(size = 20, sort = "idBranch") Pageable pageable) {
         Page<BranchResponseDTO> page = branch.findAll(pageable);
         return ResponseEntity.ok(ApiResponse.ok(page));
     }
