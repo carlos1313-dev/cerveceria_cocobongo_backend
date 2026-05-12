@@ -25,7 +25,7 @@ public class BranchEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id_branch")
-	private Long idBranch;
+	private Integer idBranch;
 
 	@Column(name = "name", nullable = false, length = 100)
 	@NotBlank(message = "El nombre de la sucursal es obligatorio")

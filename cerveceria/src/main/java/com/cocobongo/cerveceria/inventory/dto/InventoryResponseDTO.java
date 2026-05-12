@@ -1,6 +1,8 @@
 package com.cocobongo.cerveceria.inventory.dto;
 
 import com.cocobongo.cerveceria.inventory.entities.InventoryEntity;
+import com.cocobongo.cerveceria.inventory.entities.ProductType;
+
 import lombok.Data;
 
 @Data
@@ -16,7 +18,7 @@ public class InventoryResponseDTO {
 
     // Datos adicionales del producto (para respuesta)
     private String productName;
-    private String productType;
+    private  ProductType productType;
 
     public InventoryResponseDTO() {}
 
