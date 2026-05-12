@@ -29,7 +29,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
         SELECT u FROM UserEntity u
         WHERE (:role     IS NULL OR u.role     = :role)
           AND (:branchId IS NULL OR u.idBranch = :branchId)
-        ORDER BY u.createdAt DESC
     """)
     Page<UserEntity> findByFilters(
             @Param("role")     Role    role,
