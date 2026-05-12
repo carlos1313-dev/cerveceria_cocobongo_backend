@@ -18,7 +18,7 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
     boolean existsByEmail(String email);
  
     // Cuenta cuántos ADMINs activos hay — usado para proteger el único ADMIN
-    long countByRoleAndIsActiveTrue(com.cocobongo.cerveceria.users.entities.Role role);
+    long countByRoleAndIsActiveTrue(Role role);
 
     /*
      * JPQL con filtros opcionales — patrón IS NULL como cortocircuito.
@@ -29,7 +29,6 @@ public interface UserRepository extends JpaRepository<UserEntity, Integer> {
         SELECT u FROM UserEntity u
         WHERE (:role     IS NULL OR u.role     = :role)
           AND (:branchId IS NULL OR u.idBranch = :branchId)
-        ORDER BY u.createdAt DESC
     """)
     Page<UserEntity> findByFilters(
             @Param("role")     Role    role,
