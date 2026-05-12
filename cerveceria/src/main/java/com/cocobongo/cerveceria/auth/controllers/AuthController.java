@@ -18,6 +18,7 @@ import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
+import com.cocobongo.cerveceria.auth.dto.AuditDTO;
 import com.cocobongo.cerveceria.auth.dto.ChangePasswordRequest;
 import com.cocobongo.cerveceria.auth.dto.ForgotPasswordRequest;
 import com.cocobongo.cerveceria.auth.dto.LoginRequest;
@@ -26,6 +27,7 @@ import com.cocobongo.cerveceria.auth.dto.MeResponse;
 import com.cocobongo.cerveceria.auth.dto.RegisterRequest;
 import com.cocobongo.cerveceria.auth.dto.ResetPasswordRequest;
 import com.cocobongo.cerveceria.auth.entities.AuditEntity;
+import com.cocobongo.cerveceria.auth.mapper.AuditMapper;
 import com.cocobongo.cerveceria.auth.services.AuditService;
 import com.cocobongo.cerveceria.auth.services.AuthService;
 import com.cocobongo.cerveceria.common.dto.ApiResponse;
@@ -42,6 +44,7 @@ public class AuthController {
  
     private final AuthService  authService;
     private final AuditService auditService;
+    private final AuditMapper auditMapper;
  
     // ── POST /api/v1/auth/register ─────────────────────────────────────────────
     @PostMapping("/auth/register")
@@ -160,7 +163,7 @@ public class AuthController {
     // ── GET /api/v1/audit ──────────────────────────────────────────────────────
     @GetMapping("/audit")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<Page<AuditEntity>>> getAudit(
+    public ResponseEntity<ApiResponse<Page<AuditDTO>>> getAudit(
             @RequestParam(required = false) Integer userId,
             @RequestParam(required = false) String  action,
             @RequestParam(required = false)
@@ -170,6 +173,7 @@ public class AuthController {
             @PageableDefault(size = 20, sort = "createdAt") Pageable pageable) {
  
         Page<AuditEntity> page = auditService.findByFilters(userId, action, from, to, pageable);
-        return ResponseEntity.ok(ApiResponse.ok(page));
+        Page<AuditDTO> dtoPage = page.map(auditMapper::toDTO);
+        return ResponseEntity.ok(ApiResponse.ok(dtoPage));
     }
 }
