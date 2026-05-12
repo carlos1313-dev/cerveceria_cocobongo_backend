@@ -30,11 +30,6 @@ import lombok.Setter;
 @Table(name = "product")
 public class ProductEntity {
 
-	public enum ProductType {
-		RESALE,
-		SUPPLY,
-		MADE
-	}
 
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
