@@ -17,6 +17,17 @@ import lombok.Getter;
 import lombok.NoArgsConstructor;
 import lombok.Setter;
 
+/**
+ * Cliente de la cervecería (quien compra).
+ * Distinto de UserEntity (quien opera el sistema).
+ *
+ * El campo balance es calculado — nunca actualizar con UPDATE directo.
+ * Se mantiene desde la capa de aplicación al registrar ventas a crédito
+ * o abonos (installments).
+ *
+ * balance = SUM(sale.total WHERE payment_type = CREDIT AND id_client = this)
+ *         - SUM(installment.amount WHERE id_client = this)
+ */
 @Getter
 @Setter
 @Builder
@@ -29,7 +40,7 @@ public class ClientEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id_client")
-	private Long idClient;
+	private Integer idClient;
 
 	@Column(name = "name", nullable = false, length = 100)
 	@NotBlank(message = "El nombre del cliente es obligatorio")
@@ -42,6 +53,12 @@ public class ClientEntity {
 	@Email(message = "El formato del email no es válido")
 	private String email;
 
+	/**
+     * Saldo pendiente de pago.
+     * NUNCA modificar con setBalance() directamente desde fuera del servicio.
+     * Usar SaleService.registerSale() e InstallmentService.registerInstallment()
+     * como únicos puntos de escritura.
+     */
 	@Builder.Default
 	@Column(name = "balance", nullable = false, precision = 10, scale = 2)
 	@PositiveOrZero(message = "El saldo no puede ser negativo")

@@ -4,9 +4,14 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.time.LocalDateTime;
-
+import lombok.Builder;
+import lombok.NoArgsConstructor;
+import lombok.AllArgsConstructor;
 import com.cocobongo.cerveceria.branches.entities.*;
 
+@Builder
+@NoArgsConstructor
+@AllArgsConstructor
 @Entity
 @Table(name = "inventory_movement")
 @Data
@@ -52,6 +57,7 @@ public class InventoryMovementEntity {
     private Integer quantity;
 
     // Fecha automática
+    @Builder.Default
     @Column(name = "movement_date", nullable = false, updatable = false)
     private LocalDateTime movementDate = LocalDateTime.now();
 
@@ -68,7 +74,7 @@ public class InventoryMovementEntity {
     )
     private ProductEntity product;
 
-    // 🔥 IMPORTANTE: faltaba esta relación
+    // IMPORTANTE: faltaba esta relación
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
         name = "id_branch",
