@@ -4,9 +4,10 @@ import jakarta.persistence.*;
 import jakarta.validation.constraints.*;
 import lombok.Data;
 import java.time.LocalDateTime;
-
+import lombok.Builder; 
 import com.cocobongo.cerveceria.branches.entities.*;
 
+@Builder
 @Entity
 @Table(name = "inventory_movement")
 @Data
