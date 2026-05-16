@@ -9,6 +9,7 @@ import jakarta.persistence.GenerationType;
 import jakarta.persistence.Id;
 import jakarta.persistence.JoinColumn;
 import jakarta.persistence.ManyToOne;
+import jakarta.persistence.PrePersist;
 import jakarta.persistence.Table;
 import jakarta.validation.constraints.Positive;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -19,6 +20,20 @@ import lombok.NoArgsConstructor;
 import lombok.Setter;
 
 import java.math.BigDecimal;
+
+/**
+ * Línea de detalle de una venta — un registro por cada producto vendido.
+ *
+ * unit_price es un snapshot del precio en el momento de la venta.
+ * No referenciar product.price para cálculos históricos — puede haber cambiado.
+ *
+ * subtotal = quantity * unit_price
+ * Se calcula en SaleService antes de persistir y se valida aquí vía @PrePersist.
+ *
+ * NOTA para el equipo: ProductEntity.idProduct debe ser Integer.
+ * Si está declarado como Long en el módulo inventory, corregirlo para
+ * mantener consistencia de tipos en todo el proyecto.
+ */
 
 @Getter
 @Setter
@@ -53,4 +68,15 @@ public class SaleDetailEntity {
     @Column(name = "subtotal", nullable = false, precision = 10, scale = 2)
     @PositiveOrZero(message = "El subtotal no puede ser negativo")
     private BigDecimal subtotal;
+
+    /**
+     * Recalcula y asigna el subtotal justo antes de persistir.
+     * Actúa como última línea de defensa contra inconsistencias,
+     * aunque el servicio ya lo calcula antes de llegar aquí.
+     */
+    @PrePersist
+    protected void calculateSubtotal() {
+        this.subtotal = this.unitPrice.multiply(
+                BigDecimal.valueOf(this.quantity));
+    }
 }
