@@ -7,24 +7,23 @@ import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
 import org.springframework.web.bind.annotation.PathVariable;
 import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
-import org.springframework.web.bind.annotation.GetMapping;
-
-import com.cocobongo.cerveceria.clients.services.ClientService;
-import com.cocobongo.cerveceria.common.dto.ApiResponse;
-
-import jakarta.validation.Valid;
-import lombok.RequiredArgsConstructor;
 
 import com.cocobongo.cerveceria.clients.dto.ClientRequestDTO;
 import com.cocobongo.cerveceria.clients.dto.ClientResponseDTO;
 import com.cocobongo.cerveceria.clients.dto.InstallmentRequestDTO;
 import com.cocobongo.cerveceria.clients.dto.InstallmentResponseDTO;
+import com.cocobongo.cerveceria.clients.services.ClientService;
+import com.cocobongo.cerveceria.common.dto.ApiResponse;
+
+import jakarta.validation.Valid;
+import lombok.RequiredArgsConstructor;
 
 
 @RestController
@@ -76,7 +75,7 @@ public class ClientsController {
     // RF-CLI-01
     @PreAuthorize("hasRole('ADMIN')")
     @DeleteMapping("/{id}")
-    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) {
         clientService.deleteClient(id);
         return ResponseEntity.ok(ApiResponse.ok("Cliente eliminado"));
     }

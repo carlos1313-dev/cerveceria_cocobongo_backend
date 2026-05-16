@@ -1,27 +1,34 @@
 package com.cocobongo.cerveceria.sales.services;
 
-import com.cocobongo.cerveceria.users.entities.UserEntity;
+import java.math.BigDecimal;
+import java.util.ArrayList;
+import java.util.List;
+
+import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
 import com.cocobongo.cerveceria.branches.entities.BranchEntity;
+import com.cocobongo.cerveceria.clients.entities.ClientEntity;
+import com.cocobongo.cerveceria.clients.repositories.ClientRepository;
 import com.cocobongo.cerveceria.common.exception.BusinessException;
 import com.cocobongo.cerveceria.common.exception.ResourceNotFoundException;
 import com.cocobongo.cerveceria.inventory.entities.InventoryMovementEntity;
 import com.cocobongo.cerveceria.inventory.entities.ProductEntity;
-import com.cocobongo.cerveceria.sales.dto.*;
-import com.cocobongo.cerveceria.sales.entities.*;
-import com.cocobongo.cerveceria.clients.entities.ClientEntity;
-import com.cocobongo.cerveceria.clients.repositories.ClientRepository;
+import com.cocobongo.cerveceria.inventory.repositories.InventoryMovementRepository;
 import com.cocobongo.cerveceria.inventory.repositories.InventoryRepository;
 import com.cocobongo.cerveceria.inventory.repositories.ProductRepository;
-import com.cocobongo.cerveceria.inventory.repositories.InventoryMovementRepository;
+import com.cocobongo.cerveceria.sales.dto.RegisterSaleRequest;
+import com.cocobongo.cerveceria.sales.dto.SaleDetailResponse;
+import com.cocobongo.cerveceria.sales.dto.SaleItemRequest;
+import com.cocobongo.cerveceria.sales.dto.SaleResponse;
+import com.cocobongo.cerveceria.sales.entities.PaymentType;
+import com.cocobongo.cerveceria.sales.entities.SaleDetailEntity;
+import com.cocobongo.cerveceria.sales.entities.SaleEntity;
+import com.cocobongo.cerveceria.sales.entities.SaleStatus;
 import com.cocobongo.cerveceria.sales.repositories.SaleRepository;
-import com.cocobongo.cerveceria.sales.repositories.*;
+import com.cocobongo.cerveceria.users.entities.UserEntity;
+
 import lombok.RequiredArgsConstructor;
-import org.springframework.stereotype.Service;
-import org.springframework.transaction.annotation.Transactional;
- 
-import java.math.BigDecimal;
-import java.util.ArrayList;
-import java.util.List;
  
 @Service
 @RequiredArgsConstructor
@@ -143,7 +150,14 @@ public class SalesService {
         SaleStatus initialStatus = (request.getPaymentType() == PaymentType.CREDIT)
                 ? SaleStatus.PENDING
                 : SaleStatus.COMPLETED;
- 
+
+        // Si es a crédito, acumular la deuda en el balance del cliente
+        if (request.getPaymentType() == PaymentType.CREDIT && client != null) {
+            BigDecimal currentBalance = client.getBalance() != null ? client.getBalance() : BigDecimal.ZERO;
+            client.setBalance(currentBalance.add(totalSale));
+            clientRepository.save(client); // Actualiza el saldo en la BD
+        }
+
         // ── 4. Persistir la venta ──────────────────────────────────────────────
         SaleEntity sale = SaleEntity.builder()
                 .branch(branch)

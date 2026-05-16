@@ -14,7 +14,7 @@ import com.cocobongo.cerveceria.sales.entities.PaymentType;
 import com.cocobongo.cerveceria.sales.entities.SaleStatus;
 
 @Repository
-public interface ClientRepository extends JpaRepository<ClientEntity, Long> {
+public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 
     // Todos los clientes activos
     List<ClientEntity> findByIsActiveTrue();

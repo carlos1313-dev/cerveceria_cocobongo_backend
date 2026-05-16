@@ -88,7 +88,7 @@ public class ClientService {
     }
 
     @Transactional
-    public void deleteClient(Long id) {
+    public void deleteClient(Integer id) {
         clientRepository.deleteById(id);
     }
 
