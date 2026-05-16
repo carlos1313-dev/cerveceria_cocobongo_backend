@@ -18,6 +18,7 @@ import com.cocobongo.cerveceria.inventory.entities.ProductEntity;
 import com.cocobongo.cerveceria.inventory.repositories.InventoryMovementRepository;
 import com.cocobongo.cerveceria.inventory.repositories.InventoryRepository;
 import com.cocobongo.cerveceria.inventory.repositories.ProductRepository;
+import com.cocobongo.cerveceria.inventory.services.InventoryService;
 import com.cocobongo.cerveceria.sales.dto.RegisterSaleRequest;
 import com.cocobongo.cerveceria.sales.dto.SaleDetailResponse;
 import com.cocobongo.cerveceria.sales.dto.SaleItemRequest;
@@ -37,8 +38,9 @@ public class SalesService {
     private final SaleRepository saleRepository;
     private final ClientRepository clientRepository;
     private final BranchesRepository branchRepository;
-    private final InventoryRepository inventoryStockRepository;
-    private final InventoryMovementRepository inventoryMovementRepository;
+    //private final InventoryRepository inventoryStockRepository;
+    //private final InventoryMovementRepository inventoryMovementRepository;
+    private final InventoryService inventoryService;
     private final ProductRepository  productLookupRepository;
 
     // ── RF-VEN-01..05 + RF-INV-03: Registrar venta ───────────────────────────
@@ -109,7 +111,7 @@ public class SalesService {
                                     + item.getProductId()));
  
             // Verificar stock suficiente — lectura sin descuento todavía
-            inventoryStockRepository
+            inventoryService
                     .findByProductAndBranch(item.getProductId(), currentUser.getIdBranch())
                     .ifPresentOrElse(
                             inv -> {
