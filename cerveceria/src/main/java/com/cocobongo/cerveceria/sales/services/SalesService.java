@@ -9,6 +9,7 @@ import org.springframework.transaction.annotation.Transactional;
 
 import com.cocobongo.cerveceria.branches.entities.BranchEntity;
 import com.cocobongo.cerveceria.branches.repositories.BranchesRepository;
+import com.cocobongo.cerveceria.branches.services.BranchesService;
 import com.cocobongo.cerveceria.clients.entities.ClientEntity;
 import com.cocobongo.cerveceria.clients.repositories.ClientRepository;
 import com.cocobongo.cerveceria.common.exception.BusinessException;
@@ -35,9 +36,8 @@ import lombok.RequiredArgsConstructor;
 public class SalesService {
     private final SaleRepository saleRepository;
     private final ClientRepository clientRepository;
-    private final BranchesRepository branchRepository;
-    //private final InventoryRepository inventoryStockRepository;
-    //private final InventoryMovementRepository inventoryMovementRepository;
+    //private final BranchesRepository branchRepository;
+    private final BranchesService branchService;
     private final InventoryService inventoryService;
     private final ProductRepository  productLookupRepository;
 
@@ -90,9 +90,12 @@ public class SalesService {
         if (currentUser.getIdBranch() == null) {
             throw new BusinessException("El usuario no tiene una sucursal asignada");
         }
-        BranchEntity branch = branchRepository.findById(currentUser.getIdBranch())
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Sucursal no encontrada con id: " + currentUser.getIdBranch()));
+        // Verificar que la sucursal existe (lanza EntityNotFoundException si no)
+        branchService.findBranch(currentUser.getIdBranch());
+        
+        // Crear referencia de sucursal para la entidad (stub con solo ID)
+        BranchEntity branch = new BranchEntity();
+        branch.setIdBranch(currentUser.getIdBranch());
  
         // 1c. Validar cada item y construir detalles — solo lecturas aquí
         //     Si cualquier producto falla, se lanza excepción antes de escribir nada
