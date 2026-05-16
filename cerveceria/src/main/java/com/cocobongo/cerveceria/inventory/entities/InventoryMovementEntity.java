@@ -68,7 +68,7 @@ public class InventoryMovementEntity {
     )
     private ProductEntity product;
 
-    // 🔥 IMPORTANTE: faltaba esta relación
+    // IMPORTANTE: faltaba esta relación
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
         name = "id_branch",

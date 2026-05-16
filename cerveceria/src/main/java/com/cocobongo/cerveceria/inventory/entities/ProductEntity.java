@@ -34,7 +34,7 @@ public class ProductEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id_product")
-	private Long idProduct;
+	private Integer idProduct;
 
 	@ManyToOne(fetch = FetchType.LAZY)
 	@JoinColumn(name = "id_provider")

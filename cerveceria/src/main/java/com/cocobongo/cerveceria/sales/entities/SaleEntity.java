@@ -56,7 +56,7 @@ public class SaleEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_sale")
-    private Long idSale;
+    private Integer idSale;
 
     // Sucursal donde se realizó la venta
     @ManyToOne(fetch = FetchType.LAZY, optional = false)

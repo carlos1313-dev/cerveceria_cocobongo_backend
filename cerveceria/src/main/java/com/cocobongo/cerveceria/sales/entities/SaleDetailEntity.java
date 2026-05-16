@@ -47,7 +47,7 @@ public class SaleDetailEntity {
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_sale_detail")
-    private Long idSaleDetail;
+    private Integer idSaleDetail;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_sale", nullable = false)
