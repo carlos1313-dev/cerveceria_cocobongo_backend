@@ -8,15 +8,15 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cocobongo.cerveceria.branches.entities.BranchEntity;
+import com.cocobongo.cerveceria.branches.services.BranchesService;
 import com.cocobongo.cerveceria.clients.entities.ClientEntity;
 import com.cocobongo.cerveceria.clients.repositories.ClientRepository;
 import com.cocobongo.cerveceria.common.exception.BusinessException;
 import com.cocobongo.cerveceria.common.exception.ResourceNotFoundException;
-import com.cocobongo.cerveceria.inventory.entities.InventoryMovementEntity;
+import com.cocobongo.cerveceria.inventory.dto.InventoryResponseDTO;
 import com.cocobongo.cerveceria.inventory.entities.ProductEntity;
-import com.cocobongo.cerveceria.inventory.repositories.InventoryMovementRepository;
-import com.cocobongo.cerveceria.inventory.repositories.InventoryRepository;
 import com.cocobongo.cerveceria.inventory.repositories.ProductRepository;
+import com.cocobongo.cerveceria.inventory.services.InventoryService;
 import com.cocobongo.cerveceria.sales.dto.RegisterSaleRequest;
 import com.cocobongo.cerveceria.sales.dto.SaleDetailResponse;
 import com.cocobongo.cerveceria.sales.dto.SaleItemRequest;
@@ -35,30 +35,16 @@ import lombok.RequiredArgsConstructor;
 public class SalesService {
     private final SaleRepository saleRepository;
     private final ClientRepository clientRepository;
-    private final InventoryRepository inventoryStockRepository;
-    private final InventoryMovementRepository inventoryMovementRepository;
-    private final ProductRepository  productLookupRepository;
+    private final BranchesService branchService;
+    private final InventoryService inventoryService;
+    private final ProductRepository productRepository; // Inyectado correctamente
 
-    // ── RF-VEN-01..05 + RF-INV-03: Registrar venta simple ────────────────────
-    //
-    // Flujo dentro de una sola transacción:
-    //   1. Validar regla CREDIT → cliente obligatorio
-    //   2. Por cada item: verificar stock, descontar, registrar movimiento SALE
-    //   3. Calcular total
-    //   4. Persistir SaleEntity + SaleDetailEntity (cascade)
-    //
-    // Si cualquier paso falla, @Transactional hace rollback completo —
-    // ni el stock se descuenta ni la venta queda guardada a medias.
- 
     @Transactional
-    public SaleResponse registerSale(RegisterSaleRequest request,
-                                     UserEntity currentUser) {
+    public SaleResponse registerSale(RegisterSaleRequest request, UserEntity currentUser) {
  
         // ── 1. Validar CREDIT requiere cliente ─────────────────────────────────
-        if (request.getPaymentType() == PaymentType.CREDIT
-                && request.getClientId() == null) {
-            throw new BusinessException(
-                    "Las ventas a crédito requieren un cliente asociado");
+        if (request.getPaymentType() == PaymentType.CREDIT && request.getClientId() == null) {
+            throw new BusinessException("Las ventas a crédito requieren un cliente asociado");
         }
  
         // Resolver cliente si viene en el request
@@ -69,72 +55,46 @@ public class SalesService {
                             "Cliente no encontrado con id: " + request.getClientId()));
  
             if (!client.getIsActive()) {
-                throw new BusinessException(
-                        "El cliente está inactivo y no puede realizar compras");
+                throw new BusinessException("El cliente está inactivo y no puede realizar compras");
             }
         }
  
         // Resolver sucursal del usuario que registra la venta
-        // El empleado solo puede registrar ventas en su sucursal asignada
         if (currentUser.getIdBranch() == null) {
-            throw new BusinessException(
-                    "El usuario no tiene una sucursal asignada");
+            throw new BusinessException("El usuario no tiene una sucursal asignada");
         }
- 
+        
+        branchService.findBranch(currentUser.getIdBranch());
+        
         BranchEntity branch = new BranchEntity();
         branch.setIdBranch(currentUser.getIdBranch());
  
         // ── 2. Procesar cada item: stock + movimiento ──────────────────────────
-        List<SaleDetailEntity> details    = new ArrayList<>();
-        BigDecimal             totalSale  = BigDecimal.ZERO;
+        List<SaleDetailEntity> details = new ArrayList<>();
+        BigDecimal totalSale = BigDecimal.ZERO;
  
         for (SaleItemRequest item : request.getItems()) {
  
-            // Verificar que existe registro de inventario para producto+sucursal
-            inventoryStockRepository
-                    .findByProductAndBranch(item.getProductId(),
-                            currentUser.getIdBranch())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Producto id " + item.getProductId()
-                                    + " no encontrado en inventario de esta sucursal"));
+            ProductEntity product = inventoryService.findActiveProductById(item.getProductId());
  
-            // Descontar stock de forma atómica — retorna filas afectadas
-            // Si retorna 0: el stock era insuficiente (la condición stock >= quantity falló)
-            int updated = inventoryStockRepository.decrementStock(
-                    item.getProductId(),
-                    currentUser.getIdBranch(),
-                    item.getQuantity()
-            );
- 
-            if (updated == 0) {
+            List<InventoryResponseDTO> inventoryList = inventoryService
+                    .findByProductAndBranch(item.getProductId(), currentUser.getIdBranch());
+            
+            if (inventoryList.isEmpty()) {
+                throw new ResourceNotFoundException(
+                        "El producto '" + product.getName() + "' no tiene inventario en esta sucursal");
+            }
+            
+            InventoryResponseDTO inventory = inventoryList.get(0);
+            if (inventory.getStock() < item.getQuantity()) {
                 throw new BusinessException(
-                        "Stock insuficiente para el producto id: "
-                                + item.getProductId()
-                                + ". Verifique las existencias disponibles.");
+                        "Stock insuficiente para '" + product.getName()
+                                + "'. Disponible: " + inventory.getStock()
+                                + ", solicitado: " + item.getQuantity());
             }
  
-            // Registrar movimiento de inventario tipo SALE
-            // Se usa el id de la venta como id_reference — se actualiza
-            // después de persistir la venta (ver abajo)
-            InventoryMovementEntity movement = InventoryMovementEntity.builder()
-                    .idProduct(item.getProductId())
-                    .idBranch(currentUser.getIdBranch())
-                    .idUser(currentUser.getIdUser())
-                    .type("OUT")
-                    .reason("SALE")
-                    .quantity(item.getQuantity())
-                    .build();
-            inventoryMovementRepository.save(movement);
- 
-            // Cargar el producto activo — valida existencia e isActive
-            ProductEntity product = productLookupRepository.findActiveById(item.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Producto no encontrado o inactivo con id: " + item.getProductId()));
- 
             BigDecimal unitPrice = product.getPrice();
- 
-            BigDecimal subtotal = unitPrice.multiply(
-                    BigDecimal.valueOf(item.getQuantity()));
+            BigDecimal subtotal = unitPrice.multiply(BigDecimal.valueOf(item.getQuantity()));
             totalSale = totalSale.add(subtotal);
  
             SaleDetailEntity detail = SaleDetailEntity.builder()
@@ -151,13 +111,12 @@ public class SalesService {
                 ? SaleStatus.PENDING
                 : SaleStatus.COMPLETED;
 
-        // Si es a crédito, acumular la deuda en el balance del cliente
         if (request.getPaymentType() == PaymentType.CREDIT && client != null) {
             BigDecimal currentBalance = client.getBalance() != null ? client.getBalance() : BigDecimal.ZERO;
             client.setBalance(currentBalance.add(totalSale));
-            clientRepository.save(client); // Actualiza el saldo en la BD
+            clientRepository.save(client);
         }
-
+ 
         // ── 4. Persistir la venta ──────────────────────────────────────────────
         SaleEntity sale = SaleEntity.builder()
                 .branch(branch)
@@ -168,51 +127,42 @@ public class SalesService {
                 .total(totalSale)
                 .build();
  
-        // Añadir detalles usando el helper que mantiene la relación bidireccional
         details.forEach(sale::addDetail);
- 
         SaleEntity saved = saleRepository.save(sale);
  
-        // Actualizar id_reference en los movimientos con el id de la venta recién guardada
-        // para trazabilidad: movimiento SALE → id_sale
-        updateMovementReferences(request.getItems(), saved.getIdSale(),
-                currentUser.getIdBranch());
+        // Descontar stock y registrar movimiento de manera segura
+        for (SaleItemRequest item : request.getItems()) {
+ 
+            int updated = inventoryService.decrementStock(
+                    item.getProductId(),
+                    currentUser.getIdBranch(),
+                    item.getQuantity()
+            );
+ 
+            if (updated == 0) {
+                throw new BusinessException(
+                        "No se pudo descontar stock del producto id: " + item.getProductId()
+                                + ". Es posible que otro usuario registrara una venta al mismo tiempo.");
+            }
+ 
+            inventoryService.recordSaleMovement(
+                    item.getProductId(),
+                    currentUser.getIdBranch(),
+                    currentUser.getIdUser(),
+                    item.getQuantity(),
+                    saved.getIdSale()
+            );
+        }
  
         return toResponse(saved);
     }
  
-    // ── GET /api/v1/sales/{id} — comprobante interno ──────────────────────────
- 
     @Transactional(readOnly = true)
     public SaleResponse findById(Integer id) {
         SaleEntity sale = saleRepository.findById(id)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Venta no encontrada con id: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Venta no encontrada con id: " + id));
         return toResponse(sale);
     }
- 
-    // ── Interno: obtener precio del producto ───────────────────────────────────
-    //
-    // Se inyecta un ProductRepository mínimo para leer solo el precio.
-    // Alternativa válida: recibirlo como parámetro desde el controller
-    // si el frontend ya conoce el precio. Se elige cargarlo desde BD
-    // para evitar que el cliente manipule el precio enviado.
- 
-    private BigDecimal getProductPrice(Integer productId) {
-        return productLookupRepository.findActivePriceById(productId)
-                .orElseThrow(() -> new ResourceNotFoundException(
-                        "Producto no encontrado o inactivo con id: " + productId));
-    }
- 
-    private void updateMovementReferences(List<SaleItemRequest> items,
-                                          Integer saleId, Integer branchId) {
-        // Actualizar id_reference de los movimientos recién creados
-        // Se podría hacer con una query JPQL masiva, pero dado que el número
-        // de items por venta es bajo (< 20 típicamente), el loop es suficiente
-        // TODO: optimizar con @Modifying query si el volumen lo requiere
-    }
- 
-    // ── Mapper entidad → DTO ───────────────────────────────────────────────────
  
     private SaleResponse toResponse(SaleEntity sale) {
         SaleResponse response = new SaleResponse();

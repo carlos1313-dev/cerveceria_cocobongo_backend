@@ -8,6 +8,8 @@ import java.util.stream.Collectors;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cocobongo.cerveceria.common.exception.BusinessException;
+import com.cocobongo.cerveceria.common.exception.ResourceNotFoundException;
 import com.cocobongo.cerveceria.inventory.dto.InventoryMovementRequestDTO;
 import com.cocobongo.cerveceria.inventory.dto.InventoryMovementResponseDTO;
 import com.cocobongo.cerveceria.inventory.dto.InventoryResponseDTO;
@@ -21,6 +23,7 @@ import com.cocobongo.cerveceria.inventory.repositories.InventoryMovementReposito
 import com.cocobongo.cerveceria.inventory.repositories.InventoryRepository;
 import com.cocobongo.cerveceria.inventory.repositories.ProductRepository;
 import com.cocobongo.cerveceria.inventory.repositories.ProviderRepository;
+import com.cocobongo.cerveceria.inventory.entities.ProductEntity;
 
 @Service
 public class InventoryService {
@@ -76,7 +79,7 @@ public class InventoryService {
     @Transactional
     public ProviderResponseDTO updateProvider(Integer id, ProviderRequestDTO request) {
         ProviderEntity p = providerRepository.findByIdProviderAndIsActiveTrue(id)
-                .orElseThrow(() -> new RuntimeException("Provider not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Provider not found: " + id));
         p.setName(request.getName());
         p.setTelephone(request.getTelephone());
         p.setAddress(request.getAddress());
@@ -88,13 +91,21 @@ public class InventoryService {
     @Transactional
     public void deleteProvider(Integer id) {
         ProviderEntity p = providerRepository.findByIdProviderAndIsActiveTrue(id)
-                .orElseThrow(() -> new RuntimeException("Provider not found: " + id));
+                .orElseThrow(() -> new ResourceNotFoundException("Provider not found: " + id));
         if (providerRepository.hasActiveProducts(id)) {
-            throw new RuntimeException(
+            throw new BusinessException(
                 "Cannot deactivate provider " + id + ": has active products associated");
         }
         p.setIsActive(false);
         providerRepository.save(p);
+    }
+
+    // Busca un producto activo por su ID (usado en ventas)
+    @Transactional(readOnly = true)
+    public ProductEntity findActiveProductById(Integer idProduct) {
+        return productRepository.findActiveById(idProduct)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Producto no encontrado o inactivo con id: " + idProduct));
     }
 
     // Obtiene el inventario de una sucursal con opción de búsqueda por producto
@@ -111,11 +122,48 @@ public class InventoryService {
                 .stream().map(this::toInventoryResponse).collect(Collectors.toList());
     }
 
+    //Obtiene el inventario de un producto en una sucursal específica
+    @Transactional(readOnly = true)
+    public List<InventoryResponseDTO> findByProductAndBranch(Integer idProduct, Integer idBranch) {
+        return inventoryRepository.findByProductAndBranch(idProduct, idBranch)
+                .stream().map(this::toInventoryResponse).collect(Collectors.toList());
+    }
+
     // Obtiene productos con bajo stock (stock <= minStock)
     @Transactional(readOnly = true)
     public List<InventoryResponseDTO> findLowStock(Integer idBranch) {
         return inventoryRepository.findLowStock(idBranch)
                 .stream().map(this::toInventoryResponse).collect(Collectors.toList());
+    }
+
+    //Decrementa el stock de un producto en una sucursal de forma atómica (usado para registrar ventas)
+    @Transactional
+    public int decrementStock(Integer idProduct, Integer idBranch, Integer quantity) {
+        int rowsAffected = inventoryRepository.decrementStock(idProduct, idBranch, quantity);
+        if (rowsAffected == 0) {
+            throw new BusinessException(
+                "Stock insuficiente para el producto " + idProduct + " en la sucursal " + idBranch);
+        }
+        return rowsAffected;
+    }
+
+    // Registra un movimiento de venta con referencia a la venta (encapsula la lógica de inventario)
+    @Transactional
+    public InventoryMovementResponseDTO recordSaleMovement(Integer idProduct,
+                                                           Integer idBranch,
+                                                           Integer idUser,
+                                                           Integer quantity,
+                                                           Integer saleId) {
+        InventoryMovementEntity movement = InventoryMovementEntity.builder()
+                .idProduct(idProduct)
+                .idBranch(idBranch)
+                .idUser(idUser)
+                .type("OUT")
+                .reason("SALE")
+                .quantity(quantity)
+                .idReference(saleId)
+                .build();
+        return toMovementResponse(inventoryMovementRepository.save(movement));
     }
 
     // Registra una entrada de inventario (IN) y actualiza el stock
@@ -126,9 +174,9 @@ public class InventoryService {
                 ? request.getReason().toUpperCase() : "PURCHASE";
 
         if (!VALID_ENTRY_REASONS.contains(reason)) {
-            throw new RuntimeException(
-                "Invalid reason for manual entry: " + reason +
-                ". Allowed: PURCHASE, ADJUSTMENT");
+            throw new BusinessException(
+                "Razón inválida para entrada manual: " + reason +
+                ". Permitidas: PURCHASE, ADJUSTMENT");
         }
 
         // Busca o crea el registro de inventario
