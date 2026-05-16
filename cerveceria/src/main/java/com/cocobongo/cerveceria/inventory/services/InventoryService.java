@@ -136,7 +136,26 @@ public class InventoryService {
                 "Stock insuficiente para el producto " + idProduct + " en la sucursal " + idBranch);
         }
         return rowsAffected;
-    }   
+    }
+
+    // Registra un movimiento de venta con referencia a la venta (encapsula la lógica de inventario)
+    @Transactional
+    public InventoryMovementResponseDTO recordSaleMovement(Integer idProduct,
+                                                           Integer idBranch,
+                                                           Integer idUser,
+                                                           Integer quantity,
+                                                           Integer saleId) {
+        InventoryMovementEntity movement = InventoryMovementEntity.builder()
+                .idProduct(idProduct)
+                .idBranch(idBranch)
+                .idUser(idUser)
+                .type("OUT")
+                .reason("SALE")
+                .quantity(quantity)
+                .idReference(saleId)
+                .build();
+        return toMovementResponse(inventoryMovementRepository.save(movement));
+    }
 
     // Registra una entrada de inventario (IN) y actualiza el stock
     @Transactional

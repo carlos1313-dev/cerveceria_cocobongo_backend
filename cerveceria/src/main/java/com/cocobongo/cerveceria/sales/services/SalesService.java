@@ -13,10 +13,8 @@ import com.cocobongo.cerveceria.clients.entities.ClientEntity;
 import com.cocobongo.cerveceria.clients.repositories.ClientRepository;
 import com.cocobongo.cerveceria.common.exception.BusinessException;
 import com.cocobongo.cerveceria.common.exception.ResourceNotFoundException;
-import com.cocobongo.cerveceria.inventory.entities.InventoryMovementEntity;
+import com.cocobongo.cerveceria.inventory.dto.InventoryResponseDTO;
 import com.cocobongo.cerveceria.inventory.entities.ProductEntity;
-import com.cocobongo.cerveceria.inventory.repositories.InventoryMovementRepository;
-import com.cocobongo.cerveceria.inventory.repositories.InventoryRepository;
 import com.cocobongo.cerveceria.inventory.repositories.ProductRepository;
 import com.cocobongo.cerveceria.inventory.services.InventoryService;
 import com.cocobongo.cerveceria.sales.dto.RegisterSaleRequest;
@@ -111,22 +109,22 @@ public class SalesService {
                                     + item.getProductId()));
  
             // Verificar stock suficiente — lectura sin descuento todavía
-            inventoryService
-                    .findByProductAndBranch(item.getProductId(), currentUser.getIdBranch())
-                    .ifPresentOrElse(
-                            inv -> {
-                                if (inv.getStock() < item.getQuantity()) {
-                                    throw new BusinessException(
-                                            "Stock insuficiente para '"
-                                                    + product.getName()
-                                                    + "'. Disponible: " + inv.getStock()
-                                                    + ", solicitado: " + item.getQuantity());
-                                }
-                            },
-                            () -> { throw new ResourceNotFoundException(
-                                    "El producto '" + product.getName()
-                                            + "' no tiene inventario en esta sucursal"); }
-                    );
+            List<InventoryResponseDTO> inventoryList = inventoryService
+                    .findByProductAndBranch(item.getProductId(), currentUser.getIdBranch());
+            
+            if (inventoryList.isEmpty()) {
+                throw new ResourceNotFoundException(
+                        "El producto '" + product.getName()
+                                + "' no tiene inventario en esta sucursal");
+            }
+            
+            InventoryResponseDTO inventory = inventoryList.get(0);
+            if (inventory.getStock() < item.getQuantity()) {
+                throw new BusinessException(
+                        "Stock insuficiente para '" + product.getName()
+                                + "'. Disponible: " + inventory.getStock()
+                                + ", solicitado: " + item.getQuantity());
+            }
  
             // Snapshot del precio — se congela aquí para que los reportes
             // históricos sean correctos aunque el precio cambie en el futuro
@@ -171,7 +169,7 @@ public class SalesService {
             // si en este instante otro usuario vendió el mismo producto y
             // dejó stock insuficiente (race condition), retorna 0 filas
             // y @Transactional hace rollback de todo lo anterior
-            int updated = inventoryStockRepository.decrementStock(
+            int updated = inventoryService.decrementStock(
                     item.getProductId(),
                     currentUser.getIdBranch(),
                     item.getQuantity()
@@ -186,16 +184,13 @@ public class SalesService {
             }
  
             // Registrar movimiento SALE con referencia a la venta recién creada
-            inventoryMovementRepository.save(
-                    InventoryMovementEntity.builder()
-                            .idProduct(item.getProductId())
-                            .idBranch(currentUser.getIdBranch())
-                            .idUser(currentUser.getIdUser())
-                            .type("OUT")
-                            .reason("SALE")
-                            .quantity(item.getQuantity())
-                            .idReference(saved.getIdSale())  // ← trazabilidad completa
-                            .build()
+            // (delegado a InventoryService para mantener encapsulación)
+            inventoryService.recordSaleMovement(
+                    item.getProductId(),
+                    currentUser.getIdBranch(),
+                    currentUser.getIdUser(),
+                    item.getQuantity(),
+                    saved.getIdSale()
             );
         }
  
