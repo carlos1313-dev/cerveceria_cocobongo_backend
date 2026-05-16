@@ -6,9 +6,7 @@ import java.util.List;
 
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
-
 import com.cocobongo.cerveceria.branches.entities.BranchEntity;
-import com.cocobongo.cerveceria.branches.repositories.BranchesRepository;
 import com.cocobongo.cerveceria.branches.services.BranchesService;
 import com.cocobongo.cerveceria.clients.entities.ClientEntity;
 import com.cocobongo.cerveceria.clients.repositories.ClientRepository;
@@ -16,7 +14,6 @@ import com.cocobongo.cerveceria.common.exception.BusinessException;
 import com.cocobongo.cerveceria.common.exception.ResourceNotFoundException;
 import com.cocobongo.cerveceria.inventory.dto.InventoryResponseDTO;
 import com.cocobongo.cerveceria.inventory.entities.ProductEntity;
-import com.cocobongo.cerveceria.inventory.repositories.ProductRepository;
 import com.cocobongo.cerveceria.inventory.services.InventoryService;
 import com.cocobongo.cerveceria.sales.dto.RegisterSaleRequest;
 import com.cocobongo.cerveceria.sales.dto.SaleDetailResponse;
@@ -36,10 +33,8 @@ import lombok.RequiredArgsConstructor;
 public class SalesService {
     private final SaleRepository saleRepository;
     private final ClientRepository clientRepository;
-    //private final BranchesRepository branchRepository;
     private final BranchesService branchService;
     private final InventoryService inventoryService;
-    private final ProductRepository  productLookupRepository;
 
     // ── RF-VEN-01..05 + RF-INV-03: Registrar venta ───────────────────────────
     //
@@ -105,11 +100,8 @@ public class SalesService {
         for (SaleItemRequest item : request.getItems()) {
  
             // Verificar que el producto existe y está activo
-            ProductEntity product = productLookupRepository
-                    .findActiveById(item.getProductId())
-                    .orElseThrow(() -> new ResourceNotFoundException(
-                            "Producto no encontrado o inactivo con id: "
-                                    + item.getProductId()));
+            ProductEntity product = inventoryService
+                    .findActiveProductById(item.getProductId());
  
             // Verificar stock suficiente — lectura sin descuento todavía
             List<InventoryResponseDTO> inventoryList = inventoryService

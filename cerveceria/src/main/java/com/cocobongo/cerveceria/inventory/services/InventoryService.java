@@ -23,6 +23,7 @@ import com.cocobongo.cerveceria.inventory.repositories.InventoryMovementReposito
 import com.cocobongo.cerveceria.inventory.repositories.InventoryRepository;
 import com.cocobongo.cerveceria.inventory.repositories.ProductRepository;
 import com.cocobongo.cerveceria.inventory.repositories.ProviderRepository;
+import com.cocobongo.cerveceria.inventory.entities.ProductEntity;
 
 @Service
 public class InventoryService {
@@ -97,6 +98,14 @@ public class InventoryService {
         }
         p.setIsActive(false);
         providerRepository.save(p);
+    }
+
+    // Busca un producto activo por su ID (usado en ventas)
+    @Transactional(readOnly = true)
+    public ProductEntity findActiveProductById(Integer idProduct) {
+        return productRepository.findActiveById(idProduct)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Producto no encontrado o inactivo con id: " + idProduct));
     }
 
     // Obtiene el inventario de una sucursal con opción de búsqueda por producto
