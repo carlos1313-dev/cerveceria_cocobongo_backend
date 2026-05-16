@@ -8,6 +8,7 @@ import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
 import com.cocobongo.cerveceria.branches.entities.BranchEntity;
+import com.cocobongo.cerveceria.branches.repositories.BranchesRepository;
 import com.cocobongo.cerveceria.clients.entities.ClientEntity;
 import com.cocobongo.cerveceria.clients.repositories.ClientRepository;
 import com.cocobongo.cerveceria.common.exception.BusinessException;
@@ -35,6 +36,7 @@ import lombok.RequiredArgsConstructor;
 public class SalesService {
     private final SaleRepository saleRepository;
     private final ClientRepository clientRepository;
+    private final BranchesRepository branchRepository;
     private final InventoryRepository inventoryStockRepository;
     private final InventoryMovementRepository inventoryMovementRepository;
     private final ProductRepository  productLookupRepository;
@@ -88,8 +90,9 @@ public class SalesService {
         if (currentUser.getIdBranch() == null) {
             throw new BusinessException("El usuario no tiene una sucursal asignada");
         }
-        BranchEntity branch = new BranchEntity();
-        branch.setIdBranch(currentUser.getIdBranch());
+        BranchEntity branch = branchRepository.findById(currentUser.getIdBranch())
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "Sucursal no encontrada con id: " + currentUser.getIdBranch()));
  
         // 1c. Validar cada item y construir detalles — solo lecturas aquí
         //     Si cualquier producto falla, se lanza excepción antes de escribir nada
