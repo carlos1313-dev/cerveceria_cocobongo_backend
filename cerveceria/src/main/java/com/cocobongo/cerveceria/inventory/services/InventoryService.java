@@ -1,14 +1,26 @@
 package com.cocobongo.cerveceria.inventory.services;
 
-import com.cocobongo.cerveceria.inventory.entities.*;
-import com.cocobongo.cerveceria.inventory.repositories.*;
-import com.cocobongo.cerveceria.inventory.dto.*;
-
 import java.time.LocalDateTime;
-import java.util.*;
+import java.util.List;
+import java.util.Set;
 import java.util.stream.Collectors;
-import org.springframework.transaction.annotation.Transactional;
+
 import org.springframework.stereotype.Service;
+import org.springframework.transaction.annotation.Transactional;
+
+import com.cocobongo.cerveceria.inventory.dto.InventoryMovementRequestDTO;
+import com.cocobongo.cerveceria.inventory.dto.InventoryMovementResponseDTO;
+import com.cocobongo.cerveceria.inventory.dto.InventoryResponseDTO;
+import com.cocobongo.cerveceria.inventory.dto.ProviderRequestDTO;
+import com.cocobongo.cerveceria.inventory.dto.ProviderResponseDTO;
+import com.cocobongo.cerveceria.inventory.entities.IdInventory;
+import com.cocobongo.cerveceria.inventory.entities.InventoryEntity;
+import com.cocobongo.cerveceria.inventory.entities.InventoryMovementEntity;
+import com.cocobongo.cerveceria.inventory.entities.ProviderEntity;
+import com.cocobongo.cerveceria.inventory.repositories.InventoryMovementRepository;
+import com.cocobongo.cerveceria.inventory.repositories.InventoryRepository;
+import com.cocobongo.cerveceria.inventory.repositories.ProductRepository;
+import com.cocobongo.cerveceria.inventory.repositories.ProviderRepository;
 
 @Service
 public class InventoryService {
@@ -136,14 +148,15 @@ public class InventoryService {
         inventoryRepository.save(inventory);
 
         // Registra el movimiento
-        InventoryMovementEntity movement = new InventoryMovementEntity();
-        movement.setIdProduct(request.getIdProduct());
-        movement.setIdBranch(request.getIdBranch());
-        movement.setIdUser(idUserLogged);
-        movement.setType("IN");
-        movement.setReason(reason);
-        movement.setQuantity(request.getQuantity());
-        movement.setMovementDate(LocalDateTime.now());
+        InventoryMovementEntity movement = InventoryMovementEntity.builder()
+                .idProduct(request.getIdProduct())
+                .idBranch(request.getIdBranch())
+                .idUser(idUserLogged)
+                .type("IN")
+                .reason(reason)
+                .quantity(request.getQuantity())
+                .movementDate(LocalDateTime.now())
+                .build();
 
         return toMovementResponse(inventoryMovementRepository.save(movement));
     }
