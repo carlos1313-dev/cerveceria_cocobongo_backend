@@ -4,6 +4,7 @@ import java.time.LocalDateTime;
 import java.util.List;
 
 import org.springframework.data.domain.Page;
+import org.springframework.data.domain.PageRequest;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -41,7 +42,7 @@ public class ReportsController {
             @RequestParam(defaultValue = "0") int page,
             @RequestParam(defaultValue = "20") int size) {
 
-        Page<SaleReportDTO> result = reportsService.getSalesByPeriodAdvanced(from, to, null, branchId, page, size);
+        Page<SaleReportDTO> result = reportsService.getSalesByPeriod(from, to, branchId, PageRequest.of(page, size));
         return ResponseEntity.ok(ApiResponse.ok(result));
     }
 
