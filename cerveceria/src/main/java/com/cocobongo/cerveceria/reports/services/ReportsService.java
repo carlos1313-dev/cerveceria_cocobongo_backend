@@ -19,6 +19,10 @@ import com.cocobongo.cerveceria.reports.dto.SalesSummaryDTO;
 import com.cocobongo.cerveceria.reports.repositories.ReportRepository;
 import com.cocobongo.cerveceria.reports.dto.TopProductDTO;
 
+/**
+ * Servicio de negocio para generar reportes de ventas y sucursales.
+ * Centraliza la lógica de consulta y transformación de datos para la capa web.
+ */
 @Data
 @Service
 public class ReportsService {
@@ -26,18 +30,18 @@ public class ReportsService {
     private final ReportRepository reportRepository;
 
     @Transactional(readOnly = true)
-public Page<SaleReportDTO> getSalesByPeriod(LocalDateTime from, LocalDateTime to, Integer branchId, Pageable pageable) {
-    return reportRepository.findByPeriodAndBranch(from, to, branchId, pageable)
-        .map(sale -> SaleReportDTO.builder()
-                .idSale(sale.getIdSale())
-                .saleDate(sale.getSaleDate())
-                .total(sale.getTotal())
-                .branchName(sale.getBranch().getName())
-                .clientName(sale.getClient() != null ? sale.getClient().getName() : null)
-                .paymentType(sale.getPaymentType())
-                .status(sale.getStatus())
-                .build());
-}
+    public Page<SaleReportDTO> getSalesByPeriod(LocalDateTime from, LocalDateTime to, Integer branchId, Pageable pageable) {
+        return reportRepository.findByPeriodAndBranch(from, to, branchId, pageable)
+            .map(sale -> SaleReportDTO.builder()
+                    .idSale(sale.getIdSale())
+                    .saleDate(sale.getSaleDate())
+                    .total(sale.getTotal())
+                    .branchName(sale.getBranch().getName())
+                    .clientName(sale.getClient() != null ? sale.getClient().getName() : null)
+                    .paymentType(sale.getPaymentType())
+                    .status(sale.getStatus())
+                    .build());
+    }
 
     @Transactional(readOnly = true)
     public SalesSummaryDTO getSummary(LocalDateTime from, LocalDateTime to, Integer branchId) {

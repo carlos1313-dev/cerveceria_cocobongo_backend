@@ -22,6 +22,11 @@ import com.cocobongo.cerveceria.reports.services.ReportsService;
 
 import lombok.Data;
 
+/**
+ * Controlador de reportes de ventas y sucursales.
+ * Expone los endpoints para consultar ventas por período, resumen de ventas y
+ * ventas agregadas por sucursal.
+ */
 @PreAuthorize("hasRole('ADMIN')")
 @RestController
 @RequestMapping("/reports")

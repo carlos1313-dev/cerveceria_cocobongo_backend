@@ -5,6 +5,10 @@ import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+/**
+ * DTO para los productos más vendidos en un período.
+ * Devuelve unidades vendidas, ingreso bruto estimado y utilidad estimada.
+ */
 @Data
 @AllArgsConstructor
 public class TopProductDTO {

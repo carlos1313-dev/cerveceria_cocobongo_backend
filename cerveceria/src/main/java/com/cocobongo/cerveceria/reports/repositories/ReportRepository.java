@@ -15,6 +15,11 @@ import com.cocobongo.cerveceria.reports.dto.BranchSalesReportDTO;
 import com.cocobongo.cerveceria.reports.dto.TopProductDTO;
 import com.cocobongo.cerveceria.sales.entities.SaleEntity;
 
+/**
+ * Repositorio de consultas de reportes.
+ * Contiene consultas específicas para obtener ventas por período, resumen de ventas,
+ * utilidad estimada y top de productos.
+ */
 @Repository
 public interface ReportRepository extends JpaRepository<SaleEntity, Integer> {
 

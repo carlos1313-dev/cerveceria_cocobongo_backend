@@ -5,6 +5,10 @@ import java.math.BigDecimal;
 import lombok.AllArgsConstructor;
 import lombok.Data;
 
+/**
+ * DTO para reporte de ventas agregadas por sucursal.
+ * Incluye datos de la sucursal, cantidad de ventas e indicadores financieros.
+ */
 @Data
 @AllArgsConstructor
 public class BranchSalesReportDTO {
