@@ -14,6 +14,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.cocobongo.cerveceria.common.dto.ApiResponse;
 import com.cocobongo.cerveceria.reports.dto.BranchSalesReportDTO;
+import com.cocobongo.cerveceria.reports.dto.ReportPeriod;
 import com.cocobongo.cerveceria.reports.dto.SaleReportDTO;
 import com.cocobongo.cerveceria.reports.dto.SalesSummaryDTO;
 import com.cocobongo.cerveceria.reports.services.ReportsService;
