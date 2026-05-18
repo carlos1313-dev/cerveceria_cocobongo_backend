@@ -25,13 +25,21 @@ public interface ReportRepository extends JpaRepository<SaleEntity, Integer> {
 
     // ── Ventas por período con paginación ─────────────────────────────────
     // GET /api/v1/reports/sales?from=&to=&branchId=
-    
-    @Query("SELECT s FROM SaleEntity s " +
-           "WHERE s.status = 'COMPLETED' " +
-           "AND (:from     IS NULL OR s.saleDate   >= :from)     " +
-           "AND (:to       IS NULL OR s.saleDate   <= :to)       " +
-           "AND (:branchId IS NULL OR s.branch.idBranch = :branchId) " +
-           "ORDER BY s.saleDate DESC")
+
+    @Query(value = "SELECT DISTINCT s FROM SaleEntity s " +
+                   "LEFT JOIN FETCH s.branch " +
+                   "LEFT JOIN FETCH s.client " +
+                   "LEFT JOIN FETCH s.user " +
+                   "WHERE s.status = 'COMPLETED' " +
+                   "AND (:from     IS NULL OR s.saleDate   >= :from)     " +
+                   "AND (:to       IS NULL OR s.saleDate   <= :to)       " +
+                   "AND (:branchId IS NULL OR s.branch.idBranch = :branchId) " +
+                   "ORDER BY s.saleDate DESC",
+           countQuery = "SELECT COUNT(s) FROM SaleEntity s " +
+                        "WHERE s.status = 'COMPLETED' " +
+                        "AND (:from     IS NULL OR s.saleDate   >= :from) " +
+                        "AND (:to       IS NULL OR s.saleDate   <= :to) " +
+                        "AND (:branchId IS NULL OR s.branch.idBranch = :branchId)")
     Page<SaleEntity> findByPeriodAndBranch(
             @Param("from")     LocalDateTime from,
             @Param("to")       LocalDateTime to,
@@ -97,7 +105,7 @@ public interface ReportRepository extends JpaRepository<SaleEntity, Integer> {
             @Param("from")     LocalDateTime from,
             @Param("to")       LocalDateTime to,
             @Param("branchId") Integer       branchId,
-            Pageable           pageable);
+                               Pageable      pageable);
  
     // ── Ventas agrupadas por sucursal ─────────────────────────────────────
     // GET /api/v1/reports/sales/by-branch?period=
