@@ -10,7 +10,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
-import lombok.Data;
+import lombok.RequiredArgsConstructor;
 
 import com.cocobongo.cerveceria.reports.dto.BranchSalesReportDTO;
 import com.cocobongo.cerveceria.reports.dto.ReportPeriod;
@@ -23,7 +23,7 @@ import com.cocobongo.cerveceria.reports.dto.TopProductDTO;
  * Servicio de negocio para generar reportes de ventas y sucursales.
  * Centraliza la lógica de consulta y transformación de datos para la capa web.
  */
-@Data
+@RequiredArgsConstructor
 @Service
 public class ReportsService {
 
