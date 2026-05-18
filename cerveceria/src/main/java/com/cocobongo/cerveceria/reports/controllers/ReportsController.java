@@ -29,7 +29,7 @@ import lombok.Data;
  */
 @PreAuthorize("hasRole('ADMIN')")
 @RestController
-@RequestMapping("/reports")
+@RequestMapping("/api/v1/reports")
 @Data
 public class ReportsController {
 
