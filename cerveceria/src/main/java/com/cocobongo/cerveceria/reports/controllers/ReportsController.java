@@ -69,7 +69,7 @@ public class ReportsController {
     // RF-REP-01, RF-REP-02
     @GetMapping("/sales/by-branch")
     public ResponseEntity<ApiResponse<List<BranchSalesReportDTO>>> getSalesByBranch(
-            @RequestParam(defaultValue = "MONTH") ReportPeriod period) {
+            @RequestParam(defaultValue = "MONTHLY") ReportPeriod period) {
 
         return ResponseEntity.ok(
                 ApiResponse.ok(reportsService.getSalesByBranch(period)));
