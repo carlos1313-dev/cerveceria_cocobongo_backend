@@ -5,6 +5,8 @@ import java.util.List;
 
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.PageRequest;
+import org.springframework.validation.annotation.Validated;
+import jakarta.validation.constraints.Min;
 import org.springframework.format.annotation.DateTimeFormat;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
@@ -31,6 +33,7 @@ import lombok.Data;
 @RestController
 @RequestMapping("/api/v1/reports")
 @Data
+@Validated
 public class ReportsController {
 
     private final ReportsService reportsService;
@@ -44,8 +47,8 @@ public class ReportsController {
             @RequestParam(required = false) 
             @DateTimeFormat(iso = DateTimeFormat.ISO.DATE_TIME) LocalDateTime to,
             @RequestParam(required = false) Integer branchId,
-            @RequestParam(defaultValue = "0") int page,
-            @RequestParam(defaultValue = "20") int size) {
+            @RequestParam(defaultValue = "0") @Min(0) int page,
+            @RequestParam(defaultValue = "20") @Min(1) int size) {
 
         Page<SaleReportDTO> result = reportsService.getSalesByPeriod(from, to, branchId, PageRequest.of(page, size));
         return ResponseEntity.ok(ApiResponse.ok(result));
