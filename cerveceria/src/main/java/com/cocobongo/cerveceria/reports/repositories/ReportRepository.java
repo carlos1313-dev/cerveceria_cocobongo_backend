@@ -113,18 +113,18 @@ public interface ReportRepository extends JpaRepository<SaleEntity, Integer> {
            "    s.branch.idBranch, " +
            "    s.branch.name, " +
            "    s.branch.city, " +
-           "    COUNT(DISTINCT s.idSale), " +
-           "    SUM(s.total), " +
-           "    SUM((sd.unitPrice - sd.product.cost) * sd.quantity)" +
+           "    COUNT(DISTINCT s.idSale), " + 
+           "    SUM(sd.subtotal), " +
+           "    SUM((sd.unitPrice - sd.product.cost) * sd.quantity)" + 
            ") " +
            "FROM SaleEntity s " +
-           "JOIN s.details sd " +
+           "JOIN s.details sd " + 
            "WHERE s.status = 'COMPLETED' " +
            "AND (:from IS NULL OR s.saleDate >= :from) " +
            "AND (:to   IS NULL OR s.saleDate <= :to)   " +
            "GROUP BY s.branch.idBranch, s.branch.name, s.branch.city " +
-           "ORDER BY SUM(s.total) DESC")
+           "ORDER BY SUM(sd.subtotal) DESC")
     List<BranchSalesReportDTO> findSalesByBranch(
-            @Param("from") LocalDateTime from,
+            @Param("from") LocalDateTime from, 
             @Param("to")   LocalDateTime to);
 }
