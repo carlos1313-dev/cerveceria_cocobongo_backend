@@ -61,7 +61,7 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public ClientResponseDTO findById(Long id) {
+    public ClientResponseDTO findById(Integer id) {
         ClientEntity client = clientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Cliente no encontrado con id: " + id));
@@ -69,7 +69,7 @@ public class ClientService {
     }
 
     @Transactional
-    public ClientResponseDTO updateClient(Long id, ClientRequestDTO request) {
+    public ClientResponseDTO updateClient(Integer id, ClientRequestDTO request) {
         validateClientRequest(request);
 
         ClientEntity client = clientRepository.findById(id)
@@ -102,7 +102,7 @@ public class ClientService {
     }
 
     @Transactional
-    public ClientResponseDTO updateClientBalance(Long id, ClientRequestDTO request) {
+    public ClientResponseDTO updateClientBalance(Integer id, ClientRequestDTO request) {
         ClientEntity client = clientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Cliente no encontrado con id: " + id));
@@ -120,7 +120,7 @@ public class ClientService {
     }
 
     @Transactional
-    public InstallmentResponseDTO addInstallment(Long clientId, InstallmentRequestDTO request, Integer idUserLogged) {
+    public InstallmentResponseDTO addInstallment(Integer clientId, InstallmentRequestDTO request, Integer idUserLogged) {
         ClientEntity client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Cliente no encontrado con id: " + clientId));
@@ -171,10 +171,10 @@ public class ClientService {
         clientRepository.save(client);
 
         InstallmentResponseDTO resp = new InstallmentResponseDTO();
-        resp.setIdInstallment(Long.valueOf(installment.getIdInstallment()));
-        resp.setIdClient(Long.valueOf(client.getIdClient()));
-        resp.setIdUser(Long.valueOf(user.getIdUser()));
-        resp.setIdSale(sale != null ? Long.valueOf(sale.getIdSale()) : null);
+        resp.setIdInstallment(installment.getIdInstallment());
+        resp.setIdClient(client.getIdClient());
+        resp.setIdUser(user.getIdUser());
+        resp.setIdSale(sale != null ? sale.getIdSale() : null);
         resp.setAmount(installment.getAmount());
         resp.setPaymentDate(installment.getPaymentDate());
         resp.setNotes(installment.getNotes());
@@ -190,7 +190,7 @@ public class ClientService {
 
     private ClientResponseDTO toResponseDTO(ClientEntity client) {
         ClientResponseDTO dto = new ClientResponseDTO();
-        dto.setIdClient(Long.valueOf(client.getIdClient()));
+        dto.setIdClient(client.getIdClient());
         dto.setName(client.getName());
         dto.setTelephone(client.getTelephone());
         dto.setEmail(client.getEmail());

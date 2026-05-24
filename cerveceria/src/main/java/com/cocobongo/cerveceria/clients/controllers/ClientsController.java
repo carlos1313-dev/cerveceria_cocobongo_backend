@@ -55,7 +55,7 @@ public class ClientsController {
     // RF-CLI-01
     @PreAuthorize("hasRole('ADMIN')")
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<ClientResponseDTO>> getById(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<ClientResponseDTO>> getById(@PathVariable Integer id) {
         ClientResponseDTO client = clientService.findById(id);
         return ResponseEntity.ok(ApiResponse.ok(client));
     }
@@ -65,7 +65,7 @@ public class ClientsController {
     @PreAuthorize("hasRole('ADMIN')")
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<ClientResponseDTO>> update(
-        @PathVariable Long id, @Valid @RequestBody ClientRequestDTO request) {
+        @PathVariable Integer id, @Valid @RequestBody ClientRequestDTO request) {
 
         ClientResponseDTO updatedClient = clientService.updateClient(id, request);
         return ResponseEntity.ok(ApiResponse.ok("Cliente actualizado", updatedClient));
@@ -94,12 +94,12 @@ public class ClientsController {
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @PostMapping("/{id}/installments")
     public ResponseEntity<ApiResponse<InstallmentResponseDTO>> addInstallment(
-        @PathVariable long id,
+        @PathVariable Integer id,
         @Valid @RequestBody InstallmentRequestDTO request,
         @AuthenticationPrincipal Integer idUserLogged) {
 
         // Ensure path id matches request idClient
-        request.setIdClient(Long.valueOf(id));
+        request.setIdClient(id);
         InstallmentResponseDTO installment = clientService.addInstallment(id, request, idUserLogged);
         return ResponseEntity.status(201).body(ApiResponse.ok("Cuota agregada", installment));
     }
@@ -108,7 +108,7 @@ public class ClientsController {
     // RF-CLI-07
     @PreAuthorize("hasAnyRole('ADMIN', 'EMPLOYEE')")
     @GetMapping("/{id}/accountStatus")
-    public ResponseEntity<ApiResponse<BigDecimal>> getAccountStatus(@PathVariable Long id) {
+    public ResponseEntity<ApiResponse<BigDecimal>> getAccountStatus(@PathVariable Integer id) {
         ClientResponseDTO client = clientService.findById(id);
         return ResponseEntity.ok(ApiResponse.ok(client.getAccountStatus()));
     }
