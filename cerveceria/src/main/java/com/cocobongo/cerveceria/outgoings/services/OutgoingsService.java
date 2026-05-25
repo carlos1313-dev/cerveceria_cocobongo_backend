@@ -115,7 +115,7 @@ public class OutgoingsService {
           }
 
           @Transactional
-          public void deleteBranch(Integer id) {
+          public void deleteOutgoing(Integer id) {
                     repo.deleteById(id);
           }
 
