@@ -8,10 +8,10 @@ import lombok.Data;
 @Data
 public class InstallmentResponseDTO {
 
-    private Long idInstallment;
-    private Long idClient;
-    private Long idUser;
-    private Long idSale;
+    private Integer idInstallment;
+    private Integer idClient;
+    private Integer idUser;
+    private Integer idSale;
     private BigDecimal amount;
     private LocalDateTime paymentDate;
     private String notes;

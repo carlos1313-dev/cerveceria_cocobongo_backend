@@ -11,12 +11,12 @@ import lombok.Data;
 public class InstallmentRequestDTO {
 
     @NotNull(message = "El ID del cliente es obligatorio")
-    private Long idClient;
+    private Integer idClient;
 
     @NotNull(message = "El ID del usuario es obligatorio")
-    private Long idUser;
+    private Integer idUser;
 
-    private Long idSale;
+    private Integer idSale;
 
     @NotNull(message = "El monto es obligatorio")
     @Positive(message = "El monto debe ser positivo")

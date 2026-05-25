@@ -23,7 +23,7 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
     List<ClientEntity> findByIsActiveTrueAndBalanceGreaterThan(BigDecimal balance);
 
     // Cliente activo por id — evita retornar clientes desactivados
-    Optional<ClientEntity> findById(Long idClient);
+    Optional<ClientEntity> findByIdClientAndIsActiveTrue(Integer idClient);
 
     // Suma de ventas a crédito no anuladas para calcular deuda total
     @Query("SELECT COALESCE(SUM(s.total), 0) FROM SaleEntity s " +
@@ -31,7 +31,7 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
            "AND s.paymentType = :paymentType " +
            "AND s.status <> :cancelled")
     BigDecimal sumCreditSalesByClient(
-            @Param("idClient")    Long        idClient,
+            @Param("idClient")    Integer       idClient,
             @Param("paymentType") PaymentType paymentType,
             @Param("cancelled")   SaleStatus  cancelled);
 
@@ -41,6 +41,6 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
            "AND s.paymentType = :paymentType " +
            "ORDER BY s.saleDate DESC")
     List<com.cocobongo.cerveceria.sales.entities.SaleEntity> findCreditSalesByClient(
-            @Param("idClient")    Long        idClient,
+            @Param("idClient")    Integer       idClient,
             @Param("paymentType") PaymentType paymentType);
 }

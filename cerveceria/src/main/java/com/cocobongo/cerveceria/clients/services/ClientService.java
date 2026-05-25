@@ -61,15 +61,36 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public ClientResponseDTO findById(Long id) {
+    public ClientResponseDTO findById(Integer id) {
         ClientEntity client = clientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Cliente no encontrado con id: " + id));
         return toResponseDTO(client);
     }
 
+    /**
+     * Valida que el cliente exista y esté activo. Lanza excepción si no cumple.
+     */
+    @Transactional(readOnly = true)
+    public void validateClientActive(Integer clientId) {
+        ClientEntity client = clientRepository.findById(clientId)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + clientId));
+        if (!client.getIsActive()) {
+            throw new BusinessException("El cliente está inactivo y no puede realizar compras");
+        }
+    }
+
+    /**
+     * Obtiene una referencia ligera (proxy) de ClientEntity sin cargar sus datos.
+     * Útil solo para establecer relaciones en otras entidades.
+     */
+    @Transactional(readOnly = true)
+    public ClientEntity getClientReference(Integer id) {
+        return clientRepository.getReferenceById(id);
+    }
+
     @Transactional
-    public ClientResponseDTO updateClient(Long id, ClientRequestDTO request) {
+    public ClientResponseDTO updateClient(Integer id, ClientRequestDTO request) {
         validateClientRequest(request);
 
         ClientEntity client = clientRepository.findById(id)
@@ -101,8 +122,9 @@ public class ClientService {
                 .toList();
     }
 
+    /* 
     @Transactional
-    public ClientResponseDTO updateClientBalance(Long id, ClientRequestDTO request) {
+    public ClientResponseDTO updateClientBalance(Integer id, ClientRequestDTO request) {
         ClientEntity client = clientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Cliente no encontrado con id: " + id));
@@ -118,14 +140,39 @@ public class ClientService {
         clientRepository.save(client);
         return toResponseDTO(client);
     }
+    */
+
+    
+    /**
+     * Versión sobrecargada para sumar un monto al balance actual (ej. ventas a
+     * crédito).
+     */
+    @Transactional
+    public ClientResponseDTO updateClientBalance(Integer id, BigDecimal amountToAdd) {
+        ClientEntity client = clientRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("Cliente no encontrado con id: " + id));
+
+        BigDecimal currentBalance = client.getBalance() != null ? client.getBalance() : BigDecimal.ZERO;
+        BigDecimal newBalance = currentBalance.add(amountToAdd);
+
+        if (newBalance.compareTo(BigDecimal.ZERO) < 0) {
+            throw new BusinessException("El saldo resultante no puede ser negativo");
+        }
+
+        client.setBalance(newBalance);
+        clientRepository.save(client);
+        return toResponseDTO(client);
+    }
 
     @Transactional
-    public InstallmentResponseDTO addInstallment(Long clientId, InstallmentRequestDTO request, Integer idUserLogged) {
+    public InstallmentResponseDTO addInstallment(Integer clientId, InstallmentRequestDTO request,
+            Integer idUserLogged) {
         ClientEntity client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Cliente no encontrado con id: " + clientId));
 
-        Integer userId = idUserLogged != null ? idUserLogged : (request.getIdUser() != null ? request.getIdUser().intValue() : null);
+        Integer userId = idUserLogged != null ? idUserLogged
+                : (request.getIdUser() != null ? request.getIdUser().intValue() : null);
         if (userId == null) {
             throw new BusinessException("Usuario no especificado para la cuota");
         }
@@ -135,8 +182,9 @@ public class ClientService {
 
         SaleEntity sale = null;
         if (request.getIdSale() != null) {
-            sale = saleRepository.findById(request.getIdSale().intValue())
-                    .orElseThrow(() -> new ResourceNotFoundException("Venta no encontrada con id: " + request.getIdSale()));
+            sale = saleRepository.findById(request.getIdSale())
+                    .orElseThrow(
+                            () -> new ResourceNotFoundException("Venta no encontrada con id: " + request.getIdSale()));
         }
 
         BigDecimal amount = request.getAmount();
@@ -153,11 +201,11 @@ public class ClientService {
         }
 
         InstallmentEntity.InstallmentEntityBuilder b = InstallmentEntity.builder()
-            .client(client)
-            .user(user)
-            .sale(sale)
-            .amount(amount)
-            .notes(request.getNotes());
+                .client(client)
+                .user(user)
+                .sale(sale)
+                .amount(amount)
+                .notes(request.getNotes());
 
         if (request.getPaymentDate() != null) {
             b.paymentDate(request.getPaymentDate());
@@ -171,10 +219,10 @@ public class ClientService {
         clientRepository.save(client);
 
         InstallmentResponseDTO resp = new InstallmentResponseDTO();
-        resp.setIdInstallment(Long.valueOf(installment.getIdInstallment()));
-        resp.setIdClient(Long.valueOf(client.getIdClient()));
-        resp.setIdUser(Long.valueOf(user.getIdUser()));
-        resp.setIdSale(sale != null ? Long.valueOf(sale.getIdSale()) : null);
+        resp.setIdInstallment(installment.getIdInstallment());
+        resp.setIdClient(client.getIdClient());
+        resp.setIdUser(user.getIdUser());
+        resp.setIdSale(sale != null ? sale.getIdSale() : null);
         resp.setAmount(installment.getAmount());
         resp.setPaymentDate(installment.getPaymentDate());
         resp.setNotes(installment.getNotes());
@@ -190,7 +238,7 @@ public class ClientService {
 
     private ClientResponseDTO toResponseDTO(ClientEntity client) {
         ClientResponseDTO dto = new ClientResponseDTO();
-        dto.setIdClient(Long.valueOf(client.getIdClient()));
+        dto.setIdClient(client.getIdClient());
         dto.setName(client.getName());
         dto.setTelephone(client.getTelephone());
         dto.setEmail(client.getEmail());
@@ -199,4 +247,3 @@ public class ClientService {
         return dto;
     }
 }
-

@@ -23,7 +23,7 @@ public class RegisterSaleRequest {
     private PaymentType paymentType;
  
     // Nullable — solo requerido si paymentType = CREDIT
-    private Long clientId;
+    private Integer clientId;
  
     @NotEmpty(message = "La venta debe incluir al menos un producto")
     @Valid                   // propaga validación a cada SaleItemRequest
