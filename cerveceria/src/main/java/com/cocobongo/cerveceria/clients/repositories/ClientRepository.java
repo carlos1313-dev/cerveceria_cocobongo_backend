@@ -23,7 +23,7 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
     List<ClientEntity> findByIsActiveTrueAndBalanceGreaterThan(BigDecimal balance);
 
     // Cliente activo por id — evita retornar clientes desactivados
-    Optional<ClientEntity> findByClientIdAndIsActiveTrue(Integer idClient);
+    Optional<ClientEntity> findByIdClientAndIsActiveTrue(Integer idClient);
 
     // Suma de ventas a crédito no anuladas para calcular deuda total
     @Query("SELECT COALESCE(SUM(s.total), 0) FROM SaleEntity s " +
