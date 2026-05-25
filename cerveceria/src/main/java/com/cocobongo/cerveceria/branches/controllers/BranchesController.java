@@ -46,7 +46,7 @@ public class BranchesController {
         return ResponseEntity.ok(ApiResponse.ok(branch.findBranch(id)));
     }
     
-    @PostMapping("/{id}")
+    @PostMapping
     public ResponseEntity<ApiResponse<BranchResponseDTO>> create(
         @Valid @RequestBody BranchRequestDTO request) {
         
