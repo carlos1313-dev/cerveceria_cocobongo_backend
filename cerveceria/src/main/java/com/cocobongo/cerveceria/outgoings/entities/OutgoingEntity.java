@@ -1,7 +1,5 @@
 package com.cocobongo.cerveceria.outgoings.entities;
 
-import com.cocobongo.cerveceria.branches.entities.BranchEntity;
-import com.cocobongo.cerveceria.users.entities.UserEntity;
 import jakarta.persistence.Column;
 import jakarta.persistence.Entity;
 import jakarta.persistence.EnumType;
@@ -23,6 +21,7 @@ import lombok.Setter;
 
 import java.math.BigDecimal;
 import java.time.LocalDate;
+import java.time.LocalDateTime;
 
 @Getter
 @Setter
@@ -32,35 +31,25 @@ import java.time.LocalDate;
 @Entity
 @Table(name = "outgoing")
 public class OutgoingEntity {
-
-    public enum OutgoingType {
-        PERSONAL,
-        MAINTENANCE,
-        RENT,
-        SERVICES,
-        EMPLOYEE,
-        OTHER
-    }
-
     @Id
     @GeneratedValue(strategy = GenerationType.IDENTITY)
     @Column(name = "id_outgoing")
-    private Long idOutgoing;
+    private Integer idOutgoing;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_branch", nullable = false)
-    private BranchEntity branch;
+    private Integer idBranch;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_user", nullable = false)
-    private UserEntity user;
+    private Integer idUser;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20)
     private OutgoingType type;
 
     @Column(name = "date", nullable = false)
-    private LocalDate date;
+    private LocalDateTime date;
 
     @Column(name = "total", nullable = false, precision = 10, scale = 2)
     @Positive(message = "El total del egreso debe ser positivo")
@@ -72,7 +61,7 @@ public class OutgoingEntity {
     @PrePersist
     public void prePersist() {
         if (date == null) {
-            date = LocalDate.now();
+            date = LocalDateTime.now();
         }
     }
 }
