@@ -22,6 +22,9 @@ import lombok.Setter;
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
 
+import com.cocobongo.cerveceria.branches.entities.BranchEntity;
+import com.cocobongo.cerveceria.users.entities.UserEntity;
+
 @Getter
 @Setter
 @Builder
@@ -37,11 +40,11 @@ public class OutgoingEntity {
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_branch", nullable = false)
-    private Integer idBranch;
+    private BranchEntity idBranch;
 
     @ManyToOne(fetch = FetchType.LAZY, optional = false)
     @JoinColumn(name = "id_user", nullable = false)
-    private Integer idUser;
+    private UserEntity idUser;
 
     @Enumerated(EnumType.STRING)
     @Column(name = "type", nullable = false, length = 20)

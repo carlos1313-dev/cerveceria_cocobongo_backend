@@ -1,6 +1,9 @@
 package com.cocobongo.cerveceria.outgoings.dto;
 
+import com.cocobongo.cerveceria.branches.entities.BranchEntity;
 import com.cocobongo.cerveceria.outgoings.entities.OutgoingType;
+import com.cocobongo.cerveceria.users.entities.UserEntity;
+
 import lombok.*;
 
 import java.math.BigDecimal;
@@ -15,9 +18,9 @@ public class OutgoingResponseDTO {
 
           private Integer idOutgoing;
 
-          private Integer idBranch;
+          private BranchEntity idBranch;
 
-          private Integer idUser;
+          private UserEntity idUser;
 
           private OutgoingType type;
 
