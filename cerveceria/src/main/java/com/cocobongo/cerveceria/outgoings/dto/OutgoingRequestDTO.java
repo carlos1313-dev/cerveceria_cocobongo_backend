@@ -29,7 +29,7 @@ public class OutgoingRequestDTO {
 
     /**
      * Opcional:
-     * si llega null, la entidad ya asigna LocalDate.now() con @PrePersist
+     * si llega null, la entidad ya asigna LocalDateTime.now() con @PrePersist
      */
     private LocalDateTime date;
 
