@@ -59,7 +59,7 @@ public class OutgoingsController {
     public ResponseEntity<ApiResponse<OutgoingResponseDTO>> update(@PathVariable Integer id,
             @Valid @RequestBody OutgoingRequestDTO uOutgoing) {
         OutgoingResponseDTO upOutgoing = outgoings.update(uOutgoing, id);
-        return ResponseEntity.ok(ApiResponse.ok("Sucursal actualizada", upOutgoing));
+        return ResponseEntity.ok(ApiResponse.ok("Gasto actualizado", upOutgoing));
     }
 
     @GetMapping("/balance")
