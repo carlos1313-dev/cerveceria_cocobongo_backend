@@ -2,7 +2,6 @@ package com.cocobongo.cerveceria.outgoings.controllers;
 
 import java.time.LocalDateTime;
 
-import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
@@ -32,8 +31,7 @@ import org.springframework.web.bind.annotation.RequestParam;
 @RequiredArgsConstructor
 public class OutgoingsController {
 
-    @Autowired
-    private OutgoingsService outgoings;
+    private final OutgoingsService outgoings;
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<OutgoingResponseDTO>> create(
