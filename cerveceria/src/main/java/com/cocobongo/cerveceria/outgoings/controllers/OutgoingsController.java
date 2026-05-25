@@ -64,7 +64,7 @@ public class OutgoingsController {
 
     @GetMapping("/balance")
     public ResponseEntity<ApiResponse<BalanceReport>> genBalance(@RequestParam LocalDateTime inicio,
-            @RequestParam LocalDateTime fin, @PathVariable Integer idBranch) {
+            @RequestParam LocalDateTime fin, @RequestParam Integer idBranch) {
                 return ResponseEntity.ok(ApiResponse.ok("Balance de la sucursal", outgoings.generarBalance(inicio, fin, idBranch)));
     }
 
