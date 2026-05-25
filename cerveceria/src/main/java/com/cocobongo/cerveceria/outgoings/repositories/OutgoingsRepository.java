@@ -9,14 +9,16 @@ import org.springframework.data.repository.query.Param;
 
 import com.cocobongo.cerveceria.outgoings.entities.OutgoingEntity;
 
+public interface OutgoingsRepository extends JpaRepository<OutgoingEntity, Integer> {
 
-public interface OutgoingsRepository extends JpaRepository<OutgoingEntity, Integer>{
-
-          @Query(" SELECT SUM(total) AS total_gastos FROM OutgoingEntity "
-                    + "WHERE idBranch = :branchId AND ( date BETWEEN :from AND :to ) "
-          )
-          BigDecimal sumarGastos(
-            @Param("from")     LocalDateTime from,
-            @Param("to")       LocalDateTime to,
-            @Param("branchId") Integer       branchId);
+  @Query("""
+          SELECT COALESCE(SUM(o.total), 0)
+          FROM OutgoingEntity o
+          WHERE o.idBranch = :branchId
+            AND o.date BETWEEN :from AND :to
+      """)
+  BigDecimal sumarGastos(
+      @Param("from") LocalDateTime from,
+      @Param("to") LocalDateTime to,
+      @Param("branchId") Integer branchId);
 }
