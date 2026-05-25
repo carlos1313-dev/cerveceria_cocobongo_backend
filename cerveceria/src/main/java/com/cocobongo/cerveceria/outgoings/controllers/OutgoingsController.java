@@ -56,7 +56,7 @@ public class OutgoingsController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<OutgoingResponseDTO>> udpate(@PathVariable Integer id,
+    public ResponseEntity<ApiResponse<OutgoingResponseDTO>> update(@PathVariable Integer id,
             @Valid @RequestBody OutgoingRequestDTO uOutgoing) {
         OutgoingResponseDTO upOutgoing = outgoings.update(uOutgoing, id);
         return ResponseEntity.ok(ApiResponse.ok("Sucursal actualizada", upOutgoing));
