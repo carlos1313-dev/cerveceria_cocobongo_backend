@@ -62,8 +62,9 @@ public class BranchesController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Integer id){
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) {
         branch.deleteBranch(id);
+        return ResponseEntity.ok(ApiResponse.ok("Sucursal eliminada", null));
     }
     
 }
