@@ -42,11 +42,11 @@ public class BranchesController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<BranchResponseDTO>> getById(@RequestParam Integer id) {
+    public ResponseEntity<ApiResponse<BranchResponseDTO>> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(ApiResponse.ok(branch.findBranch(id)));
     }
     
-    @PostMapping("/{id}")
+    @PostMapping
     public ResponseEntity<ApiResponse<BranchResponseDTO>> create(
         @Valid @RequestBody BranchRequestDTO request) {
         
@@ -62,8 +62,9 @@ public class BranchesController {
     }
 
     @DeleteMapping("/{id}")
-    public void delete(@PathVariable Integer id){
+    public ResponseEntity<ApiResponse<Void>> delete(@PathVariable Integer id) {
         branch.deleteBranch(id);
+        return ResponseEntity.ok(ApiResponse.ok("Sucursal eliminada", null));
     }
     
 }
