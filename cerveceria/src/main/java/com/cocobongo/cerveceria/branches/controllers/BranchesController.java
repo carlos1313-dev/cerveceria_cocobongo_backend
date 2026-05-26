@@ -42,7 +42,7 @@ public class BranchesController {
     }
 
     @GetMapping("/{id}")
-    public ResponseEntity<ApiResponse<BranchResponseDTO>> getById(@RequestParam Integer id) {
+    public ResponseEntity<ApiResponse<BranchResponseDTO>> getById(@PathVariable Integer id) {
         return ResponseEntity.ok(ApiResponse.ok(branch.findBranch(id)));
     }
     
