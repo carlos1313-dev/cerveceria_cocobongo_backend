@@ -55,7 +55,7 @@ public class BranchesController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<BranchResponseDTO>> udpate(@PathVariable Integer id, 
+    public ResponseEntity<ApiResponse<BranchResponseDTO>> update(@PathVariable Integer id, 
         @Valid @RequestBody BranchRequestDTO uBranch) {
             BranchResponseDTO updatedBranch = branch.updateBranch(uBranch, id);
             return ResponseEntity.ok(ApiResponse.ok("Sucursal actualizada", updatedBranch));
