@@ -61,7 +61,7 @@ public class ClientService {
     }
 
     @Transactional(readOnly = true)
-    public ClientResponseDTO findById(Long id) {
+    public ClientResponseDTO findById(Integer id) {
         ClientEntity client = clientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Cliente no encontrado con id: " + id));
@@ -69,7 +69,7 @@ public class ClientService {
     }
 
     @Transactional
-    public ClientResponseDTO updateClient(Long id, ClientRequestDTO request) {
+    public ClientResponseDTO updateClient(Integer id, ClientRequestDTO request) {
         validateClientRequest(request);
 
         ClientEntity client = clientRepository.findById(id)
@@ -102,7 +102,7 @@ public class ClientService {
     }
 
     @Transactional
-    public ClientResponseDTO updateClientBalance(Long id, ClientRequestDTO request) {
+    public ClientResponseDTO updateClientBalance(Integer id, ClientRequestDTO request) {
         ClientEntity client = clientRepository.findById(id)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Cliente no encontrado con id: " + id));
@@ -120,7 +120,7 @@ public class ClientService {
     }
 
     @Transactional
-    public InstallmentResponseDTO addInstallment(Long clientId, InstallmentRequestDTO request, Integer idUserLogged) {
+    public InstallmentResponseDTO addInstallment(Integer clientId, InstallmentRequestDTO request, Integer idUserLogged) {
         ClientEntity client = clientRepository.findById(clientId)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Cliente no encontrado con id: " + clientId));
