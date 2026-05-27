@@ -99,7 +99,7 @@ public class ClientsController {
         @AuthenticationPrincipal Integer idUserLogged) {
 
         // Ensure path id matches request idClient
-        request.setIdClient(Long.valueOf(id));
+        request.setIdClient(id);
         InstallmentResponseDTO installment = clientService.addInstallment(id, request, idUserLogged);
         return ResponseEntity.status(201).body(ApiResponse.ok("Cuota agregada", installment));
     }
