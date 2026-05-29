@@ -1,5 +1,7 @@
 package com.cocobongo.cerveceria.branches.services;
 
+import java.util.Objects;
+
 import org.springframework.beans.factory.annotation.Autowired;
 import org.springframework.data.domain.Pageable;
 import org.springframework.data.domain.Page;
@@ -69,9 +71,8 @@ public class BranchesService {
                               throw new BusinessException("El nombre es obligatorio");
                     }
 
-                    if (uBranch.isActive()) {
-                              throw new BusinessException("El estado (inactivo o activo) es obligatorio");
-                    }
+
+                    Objects.requireNonNull(uBranch.isActive(), "El estado de la sucursal es obligatorio");
 
                     u.setName(uBranch.getName());
                     u.setAddress(uBranch.getAddress());
