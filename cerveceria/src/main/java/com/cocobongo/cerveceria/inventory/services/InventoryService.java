@@ -2,9 +2,12 @@ package com.cocobongo.cerveceria.inventory.services;
 
 import java.time.LocalDateTime;
 import java.util.List;
+import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
+import org.springframework.data.domain.Page;
+import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
@@ -13,6 +16,8 @@ import com.cocobongo.cerveceria.common.exception.ResourceNotFoundException;
 import com.cocobongo.cerveceria.inventory.dto.InventoryMovementRequestDTO;
 import com.cocobongo.cerveceria.inventory.dto.InventoryMovementResponseDTO;
 import com.cocobongo.cerveceria.inventory.dto.InventoryResponseDTO;
+import com.cocobongo.cerveceria.inventory.dto.ProductRequestDTO;
+import com.cocobongo.cerveceria.inventory.dto.ProductResponseDTO;
 import com.cocobongo.cerveceria.inventory.dto.ProviderRequestDTO;
 import com.cocobongo.cerveceria.inventory.dto.ProviderResponseDTO;
 import com.cocobongo.cerveceria.inventory.entities.IdInventory;
@@ -23,6 +28,9 @@ import com.cocobongo.cerveceria.inventory.repositories.InventoryMovementReposito
 import com.cocobongo.cerveceria.inventory.repositories.InventoryRepository;
 import com.cocobongo.cerveceria.inventory.repositories.ProductRepository;
 import com.cocobongo.cerveceria.inventory.repositories.ProviderRepository;
+
+import jakarta.persistence.EntityNotFoundException;
+
 import com.cocobongo.cerveceria.inventory.entities.ProductEntity;
 
 @Service
@@ -31,18 +39,18 @@ public class InventoryService {
     private static final Set<String> VALID_PRODUCT_TYPES = Set.of("RESALE", "SUPPLY", "MADE");
     private static final Set<String> VALID_ENTRY_REASONS = Set.of("PURCHASE", "ADJUSTMENT");
 
-    private final ProviderRepository          providerRepository;
-    private final ProductRepository           productRepository;
+    private final ProviderRepository providerRepository;
+    private final ProductRepository productRepository;
     private final InventoryMovementRepository inventoryMovementRepository;
-    private final InventoryRepository         inventoryRepository;
+    private final InventoryRepository inventoryRepository;
 
     public InventoryService(ProviderRepository providerRepository,
-                            ProductRepository productRepository,
-                            InventoryRepository inventoryRepository,
-                            InventoryMovementRepository movementRepository) {
-        this.providerRepository          = providerRepository;
-        this.productRepository           = productRepository;
-        this.inventoryRepository         = inventoryRepository;
+            ProductRepository productRepository,
+            InventoryRepository inventoryRepository,
+            InventoryMovementRepository movementRepository) {
+        this.providerRepository = providerRepository;
+        this.productRepository = productRepository;
+        this.inventoryRepository = inventoryRepository;
         this.inventoryMovementRepository = movementRepository;
     }
 
@@ -94,7 +102,7 @@ public class InventoryService {
                 .orElseThrow(() -> new ResourceNotFoundException("Provider not found: " + id));
         if (providerRepository.hasActiveProducts(id)) {
             throw new BusinessException(
-                "Cannot deactivate provider " + id + ": has active products associated");
+                    "Cannot deactivate provider " + id + ": has active products associated");
         }
         p.setIsActive(false);
         providerRepository.save(p);
@@ -103,9 +111,120 @@ public class InventoryService {
     // Busca un producto activo por su ID (usado en ventas)
     @Transactional(readOnly = true)
     public ProductEntity findActiveProductById(Integer idProduct) {
-        return productRepository.findActiveById(idProduct)
+        ProductEntity p = productRepository.findActiveById(idProduct)
                 .orElseThrow(() -> new ResourceNotFoundException(
                         "Producto no encontrado o inactivo con id: " + idProduct));
+        return p;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductResponseDTO> findAllProducts(Pageable pageable) {
+        return productRepository.findAll(pageable).map(this::toResponseDTO);
+
+    }
+
+    @Transactional(readOnly = true)
+    public ProductResponseDTO findProductById(Integer id) {
+        return productRepository.findById(id)
+                .map(this::toResponseDTO)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro un producto con el id: " + id));
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductResponseDTO> findProductByNameAndBranch(String name, Integer idBranch, Pageable pageable) {
+        Page<ProductResponseDTO> p = productRepository.findProductByNameAndBranch(name, idBranch, pageable)
+                .map(this::toResponseDTO);
+        return p;
+    }
+
+    @Transactional(readOnly = true)
+    public Page<ProductResponseDTO> findProductByIdAndBranch(Integer id, Integer idBranch, Pageable pageable) {
+        Page<ProductResponseDTO> p = productRepository.findProductByidAndBranch(id, idBranch, pageable)
+                .map(this::toResponseDTO);
+        return p;
+    }
+
+    @Transactional
+    public ProductResponseDTO createProduct(ProductRequestDTO newp) {
+        if (newp.getName() == null) {
+            throw new BusinessException("El nombre es obligatorio");
+        }
+
+        if (newp.getCost() == null) {
+            throw new BusinessException("El costo es obligatorio");
+
+        }
+
+        if (newp.getPrice() == null) {
+            throw new BusinessException("El precio es obligatorio");
+        }
+
+        String type = newp.getType() != null
+                ? newp.getType().toString()
+                : "RESALE";
+
+        if (newp.getProviderId() == null && !VALID_PRODUCT_TYPES.contains(type)) {
+            throw new BusinessException("El proveedor es obligatorio");
+        }
+
+        Objects.requireNonNull(newp.getIsActive(), "El estado del producto es obligatorio");
+
+        ProductEntity e = ProductEntity.builder()
+                .provider(newp.getProviderId())
+                .name(newp.getName())
+                .description(newp.getDescription())
+                .type(newp.getType())
+                .cost(newp.getCost())
+                .price(newp.getPrice())
+                .isActive(newp.getIsActive())
+                .build();
+
+        productRepository.save(e);
+        return toResponseDTO(e);
+    }
+
+    @Transactional
+    public ProductResponseDTO updateProduct(ProductRequestDTO request, Integer id) {
+        ProductEntity up = productRepository.findById(id)
+                .orElseThrow(() -> new EntityNotFoundException("No se encontro un producto con el id: " + id));
+        if (request.getName() == null) {
+            throw new BusinessException("El nombre es obligatorio");
+        }
+
+        if (request.getCost() == null) {
+            throw new BusinessException("El costo es obligatorio");
+
+        }
+
+        if (request.getPrice() == null) {
+            throw new BusinessException("El precio es obligatorio");
+        }
+
+        String type = request.getType() != null
+                ? request.getType().toString()
+                : "RESALE";
+
+        if (request.getProviderId() == null && !VALID_PRODUCT_TYPES.contains(type)) {
+            throw new BusinessException("El proveedor es obligatorio");
+        }
+
+        Objects.requireNonNull(request.getIsActive(), "El estado del producto es obligatorio");
+
+        up.setProvider(request.getProviderId());
+        up.setName(request.getName());
+        up.setDescription(request.getDescription());
+        up.setType(request.getType());
+        up.setCost(request.getCost());
+        up.setPrice(request.getPrice());
+        up.setIsActive(request.getIsActive());
+
+        productRepository.save(up);
+        return toResponseDTO(up);
+    }
+
+    @Transactional
+    public void deleteProduct(Integer id) {
+        productRepository.deleteById(id);
     }
 
     // Obtiene el inventario de una sucursal con opción de búsqueda por producto
@@ -122,7 +241,7 @@ public class InventoryService {
                 .stream().map(this::toInventoryResponse).collect(Collectors.toList());
     }
 
-    //Obtiene el inventario de un producto en una sucursal específica
+    // Obtiene el inventario de un producto en una sucursal específica
     @Transactional(readOnly = true)
     public List<InventoryResponseDTO> findByProductAndBranch(Integer idProduct, Integer idBranch) {
         return inventoryRepository.findByProductAndBranch(idProduct, idBranch)
@@ -136,24 +255,26 @@ public class InventoryService {
                 .stream().map(this::toInventoryResponse).collect(Collectors.toList());
     }
 
-    //Decrementa el stock de un producto en una sucursal de forma atómica (usado para registrar ventas)
+    // Decrementa el stock de un producto en una sucursal de forma atómica (usado
+    // para registrar ventas)
     @Transactional
     public int decrementStock(Integer idProduct, Integer idBranch, Integer quantity) {
         int rowsAffected = inventoryRepository.decrementStock(idProduct, idBranch, quantity);
         if (rowsAffected == 0) {
             throw new BusinessException(
-                "Stock insuficiente para el producto " + idProduct + " en la sucursal " + idBranch);
+                    "Stock insuficiente para el producto " + idProduct + " en la sucursal " + idBranch);
         }
         return rowsAffected;
     }
 
-    // Registra un movimiento de venta con referencia a la venta (encapsula la lógica de inventario)
+    // Registra un movimiento de venta con referencia a la venta (encapsula la
+    // lógica de inventario)
     @Transactional
     public InventoryMovementResponseDTO recordSaleMovement(Integer idProduct,
-                                                           Integer idBranch,
-                                                           Integer idUser,
-                                                           Integer quantity,
-                                                           Integer saleId) {
+            Integer idBranch,
+            Integer idUser,
+            Integer quantity,
+            Integer saleId) {
         InventoryMovementEntity movement = InventoryMovementEntity.builder()
                 .idProduct(idProduct)
                 .idBranch(idBranch)
@@ -169,14 +290,15 @@ public class InventoryService {
     // Registra una entrada de inventario (IN) y actualiza el stock
     @Transactional
     public InventoryMovementResponseDTO registerEntry(InventoryMovementRequestDTO request,
-                                                      Integer idUserLogged) {
+            Integer idUserLogged) {
         String reason = request.getReason() != null
-                ? request.getReason().toUpperCase() : "PURCHASE";
+                ? request.getReason().toUpperCase()
+                : "PURCHASE";
 
         if (!VALID_ENTRY_REASONS.contains(reason)) {
             throw new BusinessException(
-                "Razón inválida para entrada manual: " + reason +
-                ". Permitidas: PURCHASE, ADJUSTMENT");
+                    "Razón inválida para entrada manual: " + reason +
+                            ". Permitidas: PURCHASE, ADJUSTMENT");
         }
 
         // Busca o crea el registro de inventario
@@ -212,11 +334,11 @@ public class InventoryService {
     // Obtiene el historial de movimientos de inventario con filtros opcionales
     @Transactional(readOnly = true)
     public List<InventoryMovementResponseDTO> findMovements(Integer idProduct,
-                                                            Integer idBranch,
-                                                            String type,
-                                                            String reason,
-                                                            LocalDateTime from,
-                                                            LocalDateTime to) {
+            Integer idBranch,
+            String type,
+            String reason,
+            LocalDateTime from,
+            LocalDateTime to) {
         return inventoryMovementRepository.findByFilters(idProduct, idBranch, type, reason, from, to)
                 .stream().map(this::toMovementResponse).collect(Collectors.toList());
     }
@@ -254,5 +376,32 @@ public class InventoryService {
         }
 
         return r;
+    }
+
+    private ProductResponseDTO toResponseDTO(ProductEntity entity) {
+        if (entity == null) {
+            return null;
+        }
+
+        return ProductResponseDTO.builder()
+                .idProduct(entity.getIdProduct())
+
+                .providerId(
+                        entity.getProvider() != null
+                                ? entity.getProvider().getIdProvider()
+                                : null)
+
+                .providerName(
+                        entity.getProvider() != null
+                                ? entity.getProvider().getName()
+                                : null)
+
+                .name(entity.getName())
+                .description(entity.getDescription())
+                .type(entity.getType())
+                .cost(entity.getCost())
+                .price(entity.getPrice())
+                .isActive(entity.getIsActive())
+                .build();
     }
 }
