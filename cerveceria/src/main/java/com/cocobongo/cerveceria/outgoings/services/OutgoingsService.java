@@ -74,9 +74,6 @@ public class OutgoingsService {
                     OutgoingEntity up = repo.findById(id)
                                         .orElseThrow(() -> new ResourceNotFoundException(
                                                             "No se encontro un gasto con el id: " + id));
-                    if (upOutgoing.getDate() == null) {
-                              throw new BusinessException("La fecha no puede ser null");
-                    }
                     if (upOutgoing.getType() == null) {
                               throw new BusinessException("El tipo no puede ser null");
                     }

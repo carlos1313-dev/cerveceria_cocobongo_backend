@@ -13,7 +13,6 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestMapping;
-import org.springframework.web.bind.annotation.RequestParam;
 import org.springframework.web.bind.annotation.RestController;
 
 import com.cocobongo.cerveceria.branches.dto.BranchRequestDTO;
@@ -55,7 +54,7 @@ public class BranchesController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<BranchResponseDTO>> udpate(@PathVariable Integer id, 
+    public ResponseEntity<ApiResponse<BranchResponseDTO>> update(@PathVariable Integer id, 
         @Valid @RequestBody BranchRequestDTO uBranch) {
             BranchResponseDTO updatedBranch = branch.updateBranch(uBranch, id);
             return ResponseEntity.ok(ApiResponse.ok("Sucursal actualizada", updatedBranch));
