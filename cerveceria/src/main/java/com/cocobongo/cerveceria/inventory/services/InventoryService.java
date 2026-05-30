@@ -290,8 +290,7 @@ public class InventoryService {
     @Transactional
     public void deleteProduct(Integer id) {
         ProductEntity product = productRepository.findById(id)
-                .orElseThrow(() -> new EntityNotFoundException("No se encontro un producto con el id: " + id));
-        product.setIsActive(false);
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontro un producto con el id: " + id));
         productRepository.save(product);
     }
 
