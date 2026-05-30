@@ -179,7 +179,9 @@ public class InventoryService {
                     .orElseThrow(() -> new ResourceNotFoundException("Provider not found: " + newp.getProviderId()));
         }
 
-        Objects.requireNonNull(newp.getIsActive(), "El estado del producto es obligatorio");
+        if (newp.getIsActive() == null) {
+            throw new BusinessException("El estado del producto es obligatorio");
+        }
 
         ProductEntity e = ProductEntity.builder()
                 .provider(provider)
