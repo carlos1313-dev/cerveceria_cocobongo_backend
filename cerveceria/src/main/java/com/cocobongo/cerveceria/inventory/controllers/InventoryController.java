@@ -1,5 +1,8 @@
 package com.cocobongo.cerveceria.inventory.controllers;
 
+import java.time.LocalDateTime;
+import java.util.List;
+
 import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.format.annotation.DateTimeFormat;
@@ -7,22 +10,27 @@ import org.springframework.http.HttpStatus;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
 import org.springframework.security.core.annotation.AuthenticationPrincipal;
-import org.springframework.web.bind.annotation.*;
-
-import java.time.LocalDateTime;
-import java.util.*;
+import org.springframework.web.bind.annotation.DeleteMapping;
+import org.springframework.web.bind.annotation.GetMapping;
+import org.springframework.web.bind.annotation.PathVariable;
+import org.springframework.web.bind.annotation.PostMapping;
+import org.springframework.web.bind.annotation.PutMapping;
+import org.springframework.web.bind.annotation.RequestBody;
+import org.springframework.web.bind.annotation.RequestMapping;
+import org.springframework.web.bind.annotation.RequestParam;
+import org.springframework.web.bind.annotation.RestController;
 
 import com.cocobongo.cerveceria.common.dto.ApiResponse;
-import com.cocobongo.cerveceria.inventory.dto.*;
+import com.cocobongo.cerveceria.inventory.dto.InventoryMovementRequestDTO;
+import com.cocobongo.cerveceria.inventory.dto.InventoryMovementResponseDTO;
+import com.cocobongo.cerveceria.inventory.dto.InventoryResponseDTO;
+import com.cocobongo.cerveceria.inventory.dto.ProductRequestDTO;
+import com.cocobongo.cerveceria.inventory.dto.ProductResponseDTO;
+import com.cocobongo.cerveceria.inventory.dto.ProviderRequestDTO;
+import com.cocobongo.cerveceria.inventory.dto.ProviderResponseDTO;
 import com.cocobongo.cerveceria.inventory.services.InventoryService;
 
 import jakarta.validation.Valid;
-import org.springframework.web.bind.annotation.GetMapping;
-import org.springframework.web.bind.annotation.RequestParam;
-import org.springframework.web.bind.annotation.PostMapping;
-import org.springframework.web.bind.annotation.RequestBody;
-import org.springframework.web.bind.annotation.PutMapping;
-import org.springframework.web.bind.annotation.PathVariable;
 
 @RestController
 @RequestMapping("/api/v1")
@@ -73,9 +81,6 @@ public class InventoryController {
         return ResponseEntity.noContent().build();
     }
 
-    // PRODUCT - /api/v1/products
-    // RF-INV-01, RF-INV-02
-
     // INVENTORY — /api/v1/inventory
     // RF-INV-05
 
@@ -119,6 +124,9 @@ public class InventoryController {
         return ResponseEntity.ok(
                 inventoryService.findMovements(idProduct, idBranch, type, reason, from, to));
     }
+
+    // PRODUCT - /api/v1/products
+    // RF-INV-01, RF-INV-02
 
     @GetMapping("/inventory/products")
     public ResponseEntity<ApiResponse<Page<ProductResponseDTO>>> getProductByIdAndBranch(@PathVariable String value,
