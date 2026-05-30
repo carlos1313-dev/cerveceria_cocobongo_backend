@@ -266,7 +266,9 @@ public class InventoryService {
             throw new BusinessException("El proveedor es obligatorio");
         }
 
-        Objects.requireNonNull(request.getIsActive(), "El estado del producto es obligatorio");
+        if (request.getIsActive() == null) {
+            throw new BusinessException("El estado del producto es obligatorio");
+        }
 
         ProviderEntity provider = null;
         if (request.getProviderId() != null) {
