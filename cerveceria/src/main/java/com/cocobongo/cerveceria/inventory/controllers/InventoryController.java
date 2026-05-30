@@ -130,8 +130,9 @@ public class InventoryController {
     // RF-INV-01, RF-INV-02
 
     @GetMapping("/inventory/products")
-    public ResponseEntity<ApiResponse<Page<ProductResponseDTO>>> getProductByIdAndBranch(@RequestParam String value,
-            @RequestParam Integer idBranch, @RequestParam Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<ProductResponseDTO>>> getProductByIdAndBranch(
+            @RequestParam String value,
+            @RequestParam Integer idBranch, Pageable pageable) {
         try {
             Integer id = Integer.valueOf(value);
 
