@@ -16,6 +16,7 @@ import com.cocobongo.cerveceria.common.exception.ResourceNotFoundException;
 import com.cocobongo.cerveceria.inventory.dto.InventoryMovementRequestDTO;
 import com.cocobongo.cerveceria.inventory.dto.InventoryMovementResponseDTO;
 import com.cocobongo.cerveceria.inventory.dto.InventoryResponseDTO;
+import com.cocobongo.cerveceria.inventory.dto.ProductCreatedResponseDTO;
 import com.cocobongo.cerveceria.inventory.dto.ProductRequestDTO;
 import com.cocobongo.cerveceria.inventory.dto.ProductResponseDTO;
 import com.cocobongo.cerveceria.inventory.dto.ProviderRequestDTO;
@@ -26,6 +27,8 @@ import com.cocobongo.cerveceria.inventory.entities.InventoryMovementEntity;
 import com.cocobongo.cerveceria.inventory.entities.ProviderEntity;
 import com.cocobongo.cerveceria.inventory.repositories.InventoryMovementRepository;
 import com.cocobongo.cerveceria.inventory.repositories.InventoryRepository;
+import com.cocobongo.cerveceria.branches.dto.BranchResponseDTO;
+import com.cocobongo.cerveceria.branches.services.BranchesService;
 import com.cocobongo.cerveceria.inventory.repositories.ProductRepository;
 import com.cocobongo.cerveceria.inventory.repositories.ProviderRepository;
 
@@ -43,15 +46,18 @@ public class InventoryService {
     private final ProductRepository productRepository;
     private final InventoryMovementRepository inventoryMovementRepository;
     private final InventoryRepository inventoryRepository;
+    private final BranchesService branchesService;
 
     public InventoryService(ProviderRepository providerRepository,
             ProductRepository productRepository,
             InventoryRepository inventoryRepository,
-            InventoryMovementRepository movementRepository) {
+            InventoryMovementRepository movementRepository,
+            BranchesService branchesService) {
         this.providerRepository = providerRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
         this.inventoryMovementRepository = movementRepository;
+        this.branchesService = branchesService;
     }
 
     // Obtiene todos los proveedores activos, con opción de búsqueda por nombre
@@ -145,7 +151,7 @@ public class InventoryService {
     }
 
     @Transactional
-    public ProductResponseDTO createProduct(ProductRequestDTO newp) {
+    public ProductCreatedResponseDTO createProduct(ProductRequestDTO newp) {
         if (newp.getName() == null) {
             throw new BusinessException("El nombre es obligatorio");
         }
@@ -167,10 +173,18 @@ public class InventoryService {
             throw new BusinessException("El proveedor es obligatorio");
         }
 
-        Objects.requireNonNull(newp.getIsActive(), "El estado del producto es obligatorio");
+        ProviderEntity provider = null;
+        if (newp.getProviderId() != null) {
+            provider = providerRepository.findById(newp.getProviderId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Provider not found: " + newp.getProviderId()));
+        }
+
+        if (newp.getIsActive() == null) {
+            throw new BusinessException("El estado del producto es obligatorio");
+        }
 
         ProductEntity e = ProductEntity.builder()
-                .provider(newp.getProviderId())
+                .provider(provider)
                 .name(newp.getName())
                 .description(newp.getDescription())
                 .type(newp.getType())
@@ -179,8 +193,52 @@ public class InventoryService {
                 .isActive(newp.getIsActive())
                 .build();
 
+        // Requiere datos de sucursal para crear el inventario asociado.
+        if (newp.getBranch() == null) {
+            throw new BusinessException("La sucursal es obligatoria al crear un producto y su inventario.");
+        }
+
+        // Primero se guarda el producto para obtener su id generado.
         productRepository.save(e);
-        return toResponseDTO(e);
+
+        // Luego se crea la sucursal nueva y se utiliza su id para inventario.
+        BranchResponseDTO branch = branchesService.createBranch(newp.getBranch());
+
+        InventoryEntity inventory = new InventoryEntity();
+        inventory.setIdProduct(e.getIdProduct());
+        inventory.setIdBranch(branch.getId());
+        Integer stock = newp.getInitialStock();
+        if (stock == null) {
+            stock = 0;
+        }
+        inventory.setStock(stock);
+        Integer minStock = newp.getMinStock();
+        if (minStock == null) {
+            minStock = 0;
+        }
+        inventory.setMinStock(minStock);
+        inventoryRepository.save(inventory);
+
+        return new ProductCreatedResponseDTO(
+            toResponseDTO(e),
+            branch,
+            toInventoryResponseWithProduct(inventory, e));
+    }
+
+    private InventoryResponseDTO toInventoryResponseWithProduct(InventoryEntity i, ProductEntity product) {
+        InventoryResponseDTO r = new InventoryResponseDTO();
+        r.setIdProduct(i.getIdProduct());
+        r.setIdBranch(i.getIdBranch());
+        r.setStock(i.getStock());
+        r.setMinStock(i.getMinStock());
+
+        if (product != null) {
+            r.setProductName(product.getName());
+            r.setProductType(product.getType());
+            r.setCost(product.getCost());
+            r.setPrice(product.getPrice());
+        }
+        return r;
     }
 
     @Transactional
@@ -208,9 +266,16 @@ public class InventoryService {
             throw new BusinessException("El proveedor es obligatorio");
         }
 
-        Objects.requireNonNull(request.getIsActive(), "El estado del producto es obligatorio");
+        if (request.getIsActive() == null) {
+            throw new BusinessException("El estado del producto es obligatorio");
+        }
 
-        up.setProvider(request.getProviderId());
+        ProviderEntity provider = null;
+        if (request.getProviderId() != null) {
+            provider = providerRepository.findById(request.getProviderId())
+                    .orElseThrow(() -> new ResourceNotFoundException("Provider not found: " + request.getProviderId()));
+        }
+        up.setProvider(provider);
         up.setName(request.getName());
         up.setDescription(request.getDescription());
         up.setType(request.getType());
@@ -224,7 +289,9 @@ public class InventoryService {
 
     @Transactional
     public void deleteProduct(Integer id) {
-        productRepository.deleteById(id);
+        ProductEntity product = productRepository.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException("No se encontro un producto con el id: " + id));
+        productRepository.save(product);
     }
 
     // Obtiene el inventario de una sucursal con opción de búsqueda por producto
@@ -354,6 +421,8 @@ public class InventoryService {
         if (i.getProduct() != null) {
             r.setProductName(i.getProduct().getName());
             r.setProductType(i.getProduct().getType());
+            r.setCost(i.getProduct().getCost());
+            r.setPrice(i.getProduct().getPrice());
         }
         return r;
     }

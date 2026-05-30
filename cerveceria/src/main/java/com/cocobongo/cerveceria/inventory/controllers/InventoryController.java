@@ -24,6 +24,7 @@ import com.cocobongo.cerveceria.common.dto.ApiResponse;
 import com.cocobongo.cerveceria.inventory.dto.InventoryMovementRequestDTO;
 import com.cocobongo.cerveceria.inventory.dto.InventoryMovementResponseDTO;
 import com.cocobongo.cerveceria.inventory.dto.InventoryResponseDTO;
+import com.cocobongo.cerveceria.inventory.dto.ProductCreatedResponseDTO;
 import com.cocobongo.cerveceria.inventory.dto.ProductRequestDTO;
 import com.cocobongo.cerveceria.inventory.dto.ProductResponseDTO;
 import com.cocobongo.cerveceria.inventory.dto.ProviderRequestDTO;
@@ -95,7 +96,7 @@ public class InventoryController {
     @GetMapping("/inventory/{productId}")
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<List<InventoryResponseDTO>> findInventoryByProduct(
-            @PathVariable Integer idProduct) {
+            @PathVariable("productId") Integer idProduct) {
         return ResponseEntity.ok(inventoryService.findByProduct(idProduct));
     }
 
@@ -125,12 +126,13 @@ public class InventoryController {
                 inventoryService.findMovements(idProduct, idBranch, type, reason, from, to));
     }
 
-    // PRODUCT - /api/v1/products
+    // PRODUCT - /api/v1/inventory/products
     // RF-INV-01, RF-INV-02
 
     @GetMapping("/inventory/products")
-    public ResponseEntity<ApiResponse<Page<ProductResponseDTO>>> getProductByIdAndBranch(@PathVariable String value,
-            @RequestParam Integer idBranch, @RequestParam Pageable pageable) {
+    public ResponseEntity<ApiResponse<Page<ProductResponseDTO>>> getProductByIdAndBranch(
+            @RequestParam String value,
+            @RequestParam Integer idBranch, Pageable pageable) {
         try {
             Integer id = Integer.valueOf(value);
 
@@ -150,11 +152,13 @@ public class InventoryController {
         return ResponseEntity.ok(ApiResponse.ok(inventoryService.findProductById(id)));
     }
 
-    @PostMapping("/inventory/products/")
+    @PostMapping("/inventory/products")
     @PreAuthorize("hasRole('ADMIN')")
-    public ResponseEntity<ApiResponse<ProductResponseDTO>> createProduct(
+    public ResponseEntity<ApiResponse<ProductCreatedResponseDTO>> createProduct(
             @Valid @RequestBody ProductRequestDTO request) {
-        return ResponseEntity.ok(ApiResponse.ok(inventoryService.createProduct(request)));
+        // Devuelve el producto creado junto con la sucursal y el inventario inicial.
+        return ResponseEntity.status(HttpStatus.CREATED)
+                .body(ApiResponse.ok(inventoryService.createProduct(request)));
     }
 
     @PutMapping("/inventory/products/{id}")
