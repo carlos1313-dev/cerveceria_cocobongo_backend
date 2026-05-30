@@ -2,8 +2,9 @@ package com.cocobongo.cerveceria.inventory.dto;
 
 import java.math.BigDecimal;
 
+import com.cocobongo.cerveceria.branches.dto.BranchRequestDTO;
 import com.cocobongo.cerveceria.inventory.entities.ProductType;
-import com.cocobongo.cerveceria.inventory.entities.ProviderEntity;
+import com.fasterxml.jackson.annotation.JsonProperty;
 
 import jakarta.validation.constraints.NotBlank;
 import jakarta.validation.constraints.PositiveOrZero;
@@ -20,28 +21,30 @@ import lombok.Setter;
 @AllArgsConstructor
 public class ProductRequestDTO {
 
-          /**
-           * Puede venir null si el producto no tiene proveedor
-           * o si es producido internamente
-           */
-          private ProviderEntity providerId;
+    private Integer providerId;
 
-          @NotBlank(message = "El nombre del producto es obligatorio")
-          private String name;
+    @NotBlank(message = "El nombre del producto es obligatorio")
+    private String name;
 
-          private String description;
+    private String description;
 
-          @Builder.Default
-          private ProductType type = ProductType.RESALE;
+    @Builder.Default
+    private ProductType type = ProductType.RESALE;
 
-          @Builder.Default
-          @PositiveOrZero(message = "El costo no puede ser negativo")
-          private BigDecimal cost = BigDecimal.ZERO;
+    @Builder.Default
+    @PositiveOrZero(message = "El costo no puede ser negativo")
+    private BigDecimal cost = BigDecimal.ZERO;
 
-          @Builder.Default
-          @PositiveOrZero(message = "El precio no puede ser negativo")
-          private BigDecimal price = BigDecimal.ZERO;
+    @Builder.Default
+    @PositiveOrZero(message = "El precio no puede ser negativo")
+    private BigDecimal price = BigDecimal.ZERO;
 
-          @Builder.Default
-          private Boolean isActive = true;
+    @JsonProperty("isActive")
+    private Boolean isActive;
+
+    @JsonProperty("branch")
+    private BranchRequestDTO branch;
+
+    private Integer initialStock;
+    private Integer minStock;
 }

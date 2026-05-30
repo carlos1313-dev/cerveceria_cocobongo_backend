@@ -1,5 +1,6 @@
 package com.cocobongo.cerveceria.branches.services;
 
+import static java.lang.Math.log;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
@@ -21,77 +22,71 @@ import lombok.extern.slf4j.Slf4j;
 @Slf4j
 @Service
 public class BranchesService {
-          @Autowired
-          private BranchesRepository repo;
 
-          @Transactional
-          public BranchResponseDTO createBranch(BranchRequestDTO new_branch) throws BusinessException {
-                    log.info("Create a branch");
+    @Autowired
+    private BranchesRepository repo;
 
-                    if (new_branch.getName() == null) {
-                              throw new BusinessException("El nombre es obligatorio");
-                    }
+    @Transactional
+    public BranchResponseDTO createBranch(BranchRequestDTO new_branch) throws BusinessException {
+    log.info("Create a branch");
 
-                    if (new_branch.isActive()) {
-                              throw new BusinessException("El estado (inactivo o activo) es obligatorio");
-                    }
+    if (new_branch.getName() == null) {
+        throw new BusinessException("El nombre es obligatorio");
+    }
 
-                    BranchEntity b = BranchEntity.builder()
-                                        .name(new_branch.getName())
-                                        .city(new_branch.getCity())
-                                        .address(new_branch.getAddress())
-                                        .isActive(new_branch.isActive())
-                                        .build();
+    // Si no viene isActive, por defecto true
+    Boolean isActive = new_branch.getIsActive() != null ? new_branch.getIsActive() : true;
 
-                    repo.save(b);
-                    return toResponseDTO(b);
+    BranchEntity b = BranchEntity.builder()
+            .name(new_branch.getName())
+            .city(new_branch.getCity())
+            .address(new_branch.getAddress())
+            .isActive(isActive)
+            .build();
 
-          }
+    repo.save(b);
+    return toResponseDTO(b);
+}
 
-          @Transactional
-          public BranchResponseDTO findBranch(Integer id) {
-                    log.info("");
-                    return repo.findById(id).map(this::toResponseDTO).orElseThrow(
-                                        () -> new EntityNotFoundException("Entity with id " + id + " not found"));
-          }
+    @Transactional
+    public BranchResponseDTO findBranch(Integer id) {
+        log.info("");
+        return repo.findById(id).map(this::toResponseDTO).orElseThrow(
+                () -> new EntityNotFoundException("Entity with id " + id + " not found"));
+    }
 
-          @Transactional
-          public Page<BranchResponseDTO> findAll(Pageable pageable) {
-                    return repo.findAll(pageable)
-                                        .map(this::toResponseDTO);
-          }
+    @Transactional
+    public Page<BranchResponseDTO> findAll(Pageable pageable) {
+        return repo.findAll(pageable).map(this::toResponseDTO);
+    }
 
-          @Transactional
-          public BranchResponseDTO updateBranch(BranchRequestDTO uBranch, Integer id) {
-                    BranchEntity u = repo.findById(id)
-                                        .orElseThrow(() -> new ResourceNotFoundException(
-                                                            "No se encontro una sucursal con el id: " + id));
+    @Transactional
+    public BranchResponseDTO updateBranch(BranchRequestDTO uBranch, Integer id) {
+        BranchEntity u = repo.findById(id)
+                .orElseThrow(() -> new ResourceNotFoundException(
+                        "No se encontro una sucursal con el id: " + id));
 
-                    if (uBranch.getName() == null) {
-                              throw new BusinessException("El nombre es obligatorio");
-                    }
+        if (uBranch.getName() == null) {
+            throw new BusinessException("El nombre es obligatorio");
+        }
 
+        Objects.requireNonNull(uBranch.getIsActive(), "El estado de la sucursal es obligatorio"); // <-- getIsActive()
 
-                    Objects.requireNonNull(uBranch.isActive(), "El estado de la sucursal es obligatorio");
+        u.setName(uBranch.getName());
+        u.setAddress(uBranch.getAddress());
+        u.setCity(uBranch.getCity());
+        u.setIsActive(uBranch.getIsActive()); // <-- getIsActive()
 
-                    u.setName(uBranch.getName());
-                    u.setAddress(uBranch.getAddress());
-                    u.setCity(uBranch.getCity());
-                    u.setIsActive(uBranch.isActive());
+        repo.save(u);
+        return toResponseDTO(u);
+    }
 
-                    repo.save(u);
-                    return toResponseDTO(u);
+    @Transactional
+    public void deleteBranch(Integer id) {
+        repo.deleteById(id);
+    }
 
-          }
-
-
-          @Transactional
-          public void deleteBranch(Integer id) {
-                    repo.deleteById(id);
-          }
-
-          private BranchResponseDTO toResponseDTO(BranchEntity b) {
-                    return new BranchResponseDTO(b);
-          }
-
+    private BranchResponseDTO toResponseDTO(BranchEntity b) {
+        return new BranchResponseDTO(b);
+    }
 }

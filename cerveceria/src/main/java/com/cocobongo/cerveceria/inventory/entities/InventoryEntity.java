@@ -4,12 +4,14 @@ import com.cocobongo.cerveceria.branches.entities.*;
 import jakarta.persistence.*;
 import jakarta.validation.constraints.Min;
 import jakarta.validation.constraints.NotNull;
-import lombok.Data;
+import lombok.Getter;
+import lombok.Setter;
 
 @Entity
 @Table(name = "inventory")
-@IdClass(IdInventory.class) // Llave compuesta (producto + sucursal)
-@Data
+@IdClass(IdInventory.class)
+@Getter
+@Setter
 public class InventoryEntity {
 
     @Id
@@ -20,19 +22,16 @@ public class InventoryEntity {
     @Column(name = "id_branch", nullable = false)
     private Integer idBranch;
 
-    // Stock actual (no puede ser negativo)
     @NotNull
     @Min(value = 0, message = "El stock no puede ser negativo")
     @Column(name = "stock", nullable = false)
     private Integer stock = 0;
 
-    // Stock mínimo para alertas
     @NotNull
     @Min(value = 0, message = "El stock mínimo no puede ser negativo")
     @Column(name = "min_stock", nullable = false)
     private Integer minStock = 0;
 
-    // Relación con producto (solo lectura)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
         name = "id_product",
@@ -42,7 +41,6 @@ public class InventoryEntity {
     )
     private ProductEntity product;
 
-    // Relación con sucursal (solo lectura)
     @ManyToOne(fetch = FetchType.LAZY)
     @JoinColumn(
         name = "id_branch",
