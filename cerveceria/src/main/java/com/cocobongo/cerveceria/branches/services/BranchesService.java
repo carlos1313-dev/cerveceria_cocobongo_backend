@@ -1,6 +1,5 @@
 package com.cocobongo.cerveceria.branches.services;
 
-import static java.lang.Math.log;
 import java.util.Objects;
 
 import org.springframework.beans.factory.annotation.Autowired;
