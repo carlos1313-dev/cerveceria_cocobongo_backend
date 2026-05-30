@@ -45,6 +45,9 @@ public class ProductRequestDTO {
     @JsonProperty("branch")
     private BranchRequestDTO branch;
 
+    @PositiveOrZero(message = "El stock inicial no puede ser negativo")
     private Integer initialStock;
+
+    @PositiveOrZero(message = "El stock mínimo no puede ser negativo")
     private Integer minStock;
 }
