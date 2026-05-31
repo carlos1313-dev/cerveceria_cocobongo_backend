@@ -11,7 +11,7 @@ Sistema web para la administración operativa y financiera de una cervecería, q
 | Carlos Enrique Sangronis Ricardo | 20241020040 |
 | Gabriela Martínez Silva | 20231020205 |
 | Jhon Jairo O'meara Muñoz | 20231020220 |
-| Juan David Diaz Páez | — |
+| Juan David Diaz Páez | 20241020033 |
 | Geraldine Alejandra Vargas Moreno | 20241020105 |
 
 **Curso:** Bases de Datos · **Docente:** René Alejandro Lobo Quintero  
