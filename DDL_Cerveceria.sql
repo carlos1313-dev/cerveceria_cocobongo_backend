@@ -508,8 +508,8 @@ SELECT
     s.id_client,
     s.id_user
 FROM sale s
-WHERE s.sale_date >= CURRENT_DATE - INTERVAL 7 DAY
-    AND s.sale_date <  CURRENT_DATE + INTERVAL 1 DAY
+WHERE s.sale_date >= CURRENT_DATE - INTERVAL '7' DAY
+    AND s.sale_date <  CURRENT_DATE + INTERVAL '1' DAY
      AND s.status = 'COMPLETED';
 
 -- Vista: reporte mensual (últimos 30 días)
@@ -523,8 +523,8 @@ SELECT
     s.id_client,
     s.id_user
 FROM sale s
-WHERE s.sale_date >= CURRENT_DATE - INTERVAL 30 DAY
-    AND s.sale_date <  CURRENT_DATE + INTERVAL 1 DAY
+WHERE s.sale_date >= CURRENT_DATE - INTERVAL '30' DAY
+    AND s.sale_date <  CURRENT_DATE + INTERVAL '1' DAY
     AND s.status = 'COMPLETED';
 
 
