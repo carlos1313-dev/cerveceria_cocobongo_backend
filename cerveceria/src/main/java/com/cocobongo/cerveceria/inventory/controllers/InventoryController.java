@@ -30,6 +30,7 @@ import com.cocobongo.cerveceria.inventory.dto.ProductResponseDTO;
 import com.cocobongo.cerveceria.inventory.dto.ProviderRequestDTO;
 import com.cocobongo.cerveceria.inventory.dto.ProviderResponseDTO;
 import com.cocobongo.cerveceria.inventory.services.InventoryService;
+import com.cocobongo.cerveceria.users.entities.UserEntity;
 
 import jakarta.validation.Valid;
 
@@ -107,8 +108,9 @@ public class InventoryController {
     @PreAuthorize("hasRole('ADMIN')")
     public ResponseEntity<InventoryMovementResponseDTO> registerEntry(
             @Valid @RequestBody InventoryMovementRequestDTO request,
-            @AuthenticationPrincipal Integer idUserLogged) {
-
+            @AuthenticationPrincipal UserEntity user) {  // ← Usar tu entidad User
+        
+        Integer idUserLogged = user.getIdUser();  // ← Extraer el ID
         return ResponseEntity.status(HttpStatus.CREATED)
                 .body(inventoryService.registerEntry(request, idUserLogged));
     }
