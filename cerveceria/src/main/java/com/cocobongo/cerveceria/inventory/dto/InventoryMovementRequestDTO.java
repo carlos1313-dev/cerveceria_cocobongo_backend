@@ -19,10 +19,6 @@ public class InventoryMovementRequestDTO {
     @NotNull(message = "Id de la sucursal es requerido")
     private Integer idBranch;
 
-    // ID del usuario que realiza el movimiento
-    @NotNull(message = "Id del usuario es requerido")
-    private Integer idUser;
-
     @NotNull(message = "Tipo es requerido")
     @Pattern(regexp = "IN|OUT", message = "Tipo debe ser 'IN' o 'OUT'")
     private String type;
