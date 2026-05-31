@@ -16,6 +16,7 @@ import org.springframework.web.bind.annotation.RestController;
 
 import com.cocobongo.cerveceria.common.dto.ApiResponse;
 import com.cocobongo.cerveceria.reports.dto.BranchSalesReportDTO;
+import com.cocobongo.cerveceria.reports.dto.PeriodSummaryDTO;
 import com.cocobongo.cerveceria.reports.dto.ReportPeriod;
 import com.cocobongo.cerveceria.reports.dto.SaleReportDTO;
 import com.cocobongo.cerveceria.reports.dto.SalesSummaryDTO;
@@ -76,5 +77,16 @@ public class ReportsController {
 
         return ResponseEntity.ok(
                 ApiResponse.ok(reportsService.getSalesByBranch(period)));
+    }
+
+    // REPORTS — GET /api/v1/reports/period-summary?period=DAILY&branchId=
+    // RF-REP-01
+    @GetMapping("/period-summary")
+    public ResponseEntity<ApiResponse<List<PeriodSummaryDTO>>> getPeriodSummary(
+            @RequestParam(defaultValue = "DAILY") ReportPeriod period,
+            @RequestParam(required = false)        Integer       branchId) {
+
+        return ResponseEntity.ok(
+                ApiResponse.ok(reportsService.getPeriodSummary(period, branchId)));
     }
 }

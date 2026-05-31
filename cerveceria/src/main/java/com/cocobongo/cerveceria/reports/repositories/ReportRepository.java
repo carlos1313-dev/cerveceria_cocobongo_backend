@@ -1,6 +1,7 @@
 package com.cocobongo.cerveceria.reports.repositories;
 
 import java.math.BigDecimal;
+import java.time.LocalDate;
 import java.time.LocalDateTime;
 import java.util.List;
 
@@ -12,7 +13,9 @@ import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
 
 import com.cocobongo.cerveceria.reports.dto.BranchSalesReportDTO;
+import com.cocobongo.cerveceria.reports.dto.PeriodSummaryDTO;
 import com.cocobongo.cerveceria.reports.dto.TopProductDTO;
+import com.cocobongo.cerveceria.reports.entities.PeriodSummaryView;
 import com.cocobongo.cerveceria.sales.entities.SaleEntity;
 
 /**
@@ -31,14 +34,14 @@ public interface ReportRepository extends JpaRepository<SaleEntity, Integer> {
                    "LEFT JOIN FETCH s.client " +
                    "LEFT JOIN FETCH s.user " +
                    "WHERE s.status = 'COMPLETED' " +
-                   "AND (:from     IS NULL OR s.saleDate   >= :from)     " +
-                   "AND (:to       IS NULL OR s.saleDate   <= :to)       " +
+                   "AND (:from     IS NULL OR s.saleDate >= :from) " +
+                   "AND (:to       IS NULL OR s.saleDate <= :to) " +
                    "AND (:branchId IS NULL OR s.branch.idBranch = :branchId) " +
                    "ORDER BY s.saleDate DESC",
            countQuery = "SELECT COUNT(s) FROM SaleEntity s " +
                         "WHERE s.status = 'COMPLETED' " +
-                        "AND (:from     IS NULL OR s.saleDate   >= :from) " +
-                        "AND (:to       IS NULL OR s.saleDate   <= :to) " +
+                        "AND (:from     IS NULL OR s.saleDate >= :from) " +
+                        "AND (:to       IS NULL OR s.saleDate <= :to) " +
                         "AND (:branchId IS NULL OR s.branch.idBranch = :branchId)")
     Page<SaleEntity> findByPeriodAndBranch(
             @Param("from")     LocalDateTime from,
@@ -49,8 +52,8 @@ public interface ReportRepository extends JpaRepository<SaleEntity, Integer> {
     // ── Total de ingresos brutos ──────────────────────────────────────────
     @Query("SELECT COALESCE(SUM(s.total), 0) FROM SaleEntity s " +
            "WHERE s.status = 'COMPLETED' " +
-           "AND (:from     IS NULL OR s.saleDate   >= :from)     " +
-           "AND (:to       IS NULL OR s.saleDate   <= :to)       " +
+           "AND (:from     IS NULL OR s.saleDate >= :from) " +
+           "AND (:to       IS NULL OR s.saleDate <= :to) " +
            "AND (:branchId IS NULL OR s.branch.idBranch = :branchId)")
     BigDecimal sumGrossIncome(
             @Param("from")     LocalDateTime from,
@@ -60,8 +63,8 @@ public interface ReportRepository extends JpaRepository<SaleEntity, Integer> {
     // ── Cantidad de ventas completadas ────────────────────────────────────
     @Query("SELECT COUNT(s) FROM SaleEntity s " +
            "WHERE s.status = 'COMPLETED' " +
-           "AND (:from     IS NULL OR s.saleDate   >= :from)     " +
-           "AND (:to       IS NULL OR s.saleDate   <= :to)       " +
+           "AND (:from     IS NULL OR s.saleDate >= :from) " +
+           "AND (:to       IS NULL OR s.saleDate <= :to) " +
            "AND (:branchId IS NULL OR s.branch.idBranch = :branchId)")
     Long countSales(
             @Param("from")     LocalDateTime from,
@@ -76,8 +79,8 @@ public interface ReportRepository extends JpaRepository<SaleEntity, Integer> {
            "FROM SaleDetailEntity sd " +
            "JOIN sd.sale s " +
            "WHERE s.status = 'COMPLETED' " +
-           "AND (:from     IS NULL OR s.saleDate   >= :from)     " +
-           "AND (:to       IS NULL OR s.saleDate   <= :to)       " +
+           "AND (:from     IS NULL OR s.saleDate >= :from) " +
+           "AND (:to       IS NULL OR s.saleDate <= :to) " +
            "AND (:branchId IS NULL OR s.branch.idBranch = :branchId)")
     BigDecimal calculateEstimatedProfit(
             @Param("from")     LocalDateTime from,
@@ -96,8 +99,8 @@ public interface ReportRepository extends JpaRepository<SaleEntity, Integer> {
            "FROM SaleDetailEntity sd " +
            "JOIN sd.sale s " +
            "WHERE s.status = 'COMPLETED' " +
-           "AND (:from     IS NULL OR s.saleDate   >= :from)     " +
-           "AND (:to       IS NULL OR s.saleDate   <= :to)       " +
+           "AND (:from     IS NULL OR s.saleDate >= :from) " +
+           "AND (:to       IS NULL OR s.saleDate <= :to) " +
            "AND (:branchId IS NULL OR s.branch.idBranch = :branchId) " +
            "GROUP BY sd.product.idProduct, sd.product.name " +
            "ORDER BY SUM(sd.quantity) DESC")
@@ -113,18 +116,30 @@ public interface ReportRepository extends JpaRepository<SaleEntity, Integer> {
            "    s.branch.idBranch, " +
            "    s.branch.name, " +
            "    s.branch.city, " +
-           "    COUNT(DISTINCT s.idSale), " + 
+           "    COUNT(DISTINCT s.idSale), " +
            "    SUM(sd.subtotal), " +
-           "    SUM((sd.unitPrice - sd.product.cost) * sd.quantity)" + 
+           "    SUM((sd.unitPrice - sd.product.cost) * sd.quantity)" +
            ") " +
            "FROM SaleEntity s " +
-           "JOIN s.details sd " + 
+           "JOIN s.details sd " +
            "WHERE s.status = 'COMPLETED' " +
            "AND (:from IS NULL OR s.saleDate >= :from) " +
-           "AND (:to   IS NULL OR s.saleDate <= :to)   " +
+           "AND (:to   IS NULL OR s.saleDate <= :to) " +
            "GROUP BY s.branch.idBranch, s.branch.name, s.branch.city " +
            "ORDER BY SUM(sd.subtotal) DESC")
     List<BranchSalesReportDTO> findSalesByBranch(
-            @Param("from") LocalDateTime from, 
+            @Param("from") LocalDateTime from,
             @Param("to")   LocalDateTime to);
+
+    // ── Resumen diario por sucursal ─────────────────────────────────────
+    @Query(value = "SELECT * FROM v_period_summary " +
+               "WHERE (:branchId IS NULL OR id_branch = :branchId) " +
+               "AND   (CAST(:from AS date) IS NULL OR sale_day >= CAST(:from AS date)) " +
+               "AND   (CAST(:to   AS date) IS NULL OR sale_day <= CAST(:to   AS date)) " +
+               "ORDER BY sale_day DESC",
+       nativeQuery = true)
+List<PeriodSummaryDTO> findPeriodSummary(
+        @Param("branchId") Integer   branchId,
+        @Param("from")     LocalDate from,
+        @Param("to")       LocalDate to);
 }
