@@ -48,9 +48,6 @@ public class OutgoingsService {
 
           @Transactional
           public OutgoingResponseDTO create(OutgoingRequestDTO outgoing) {
-                    if (outgoing.getDate() == null) {
-                              throw new BusinessException("La fecha no puede ser null");
-                    }
                     if (outgoing.getType() == null) {
                               throw new BusinessException("El tipo no puede ser null");
                     }
@@ -62,7 +59,7 @@ public class OutgoingsService {
                                         .idBranch(BranchEntity.builder().idBranch(outgoing.getIdBranch()).build())
                                         .idUser(UserEntity.builder().idUser(outgoing.getIdUser()).build())
                                         .type(outgoing.getType())
-                                        .date(outgoing.getDate())
+                                        .date(resolveDate(outgoing.getDate()))
                                         .total(outgoing.getTotal())
                                         .description(outgoing.getDescription())
                                         .build();
@@ -86,7 +83,7 @@ public class OutgoingsService {
                     up.setIdBranch(BranchEntity.builder().idBranch(upOutgoing.getIdBranch()).build());
                     up.setIdUser(UserEntity.builder().idUser(upOutgoing.getIdUser()).build());
                     up.setType(upOutgoing.getType());
-                    up.setDate(upOutgoing.getDate());
+                    up.setDate(resolveDate(upOutgoing.getDate()));
                     up.setTotal(upOutgoing.getTotal());
                     up.setDescription(upOutgoing.getDescription());
 
@@ -132,5 +129,9 @@ public class OutgoingsService {
                                         .total(entity.getTotal())
                                         .description(entity.getDescription())
                                         .build();
+          }
+
+          private LocalDateTime resolveDate(LocalDateTime date) {
+                    return date != null ? date : LocalDateTime.now();
           }
 }
