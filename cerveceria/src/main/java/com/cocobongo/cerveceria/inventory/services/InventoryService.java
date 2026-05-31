@@ -2,7 +2,6 @@ package com.cocobongo.cerveceria.inventory.services;
 
 import java.time.LocalDateTime;
 import java.util.List;
-import java.util.Objects;
 import java.util.Set;
 import java.util.stream.Collectors;
 
@@ -11,6 +10,8 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 import org.springframework.transaction.annotation.Transactional;
 
+import com.cocobongo.cerveceria.branches.dto.BranchResponseDTO;
+import com.cocobongo.cerveceria.branches.services.BranchesService;
 import com.cocobongo.cerveceria.common.exception.BusinessException;
 import com.cocobongo.cerveceria.common.exception.ResourceNotFoundException;
 import com.cocobongo.cerveceria.inventory.dto.InventoryMovementRequestDTO;
@@ -24,17 +25,14 @@ import com.cocobongo.cerveceria.inventory.dto.ProviderResponseDTO;
 import com.cocobongo.cerveceria.inventory.entities.IdInventory;
 import com.cocobongo.cerveceria.inventory.entities.InventoryEntity;
 import com.cocobongo.cerveceria.inventory.entities.InventoryMovementEntity;
+import com.cocobongo.cerveceria.inventory.entities.ProductEntity;
 import com.cocobongo.cerveceria.inventory.entities.ProviderEntity;
 import com.cocobongo.cerveceria.inventory.repositories.InventoryMovementRepository;
 import com.cocobongo.cerveceria.inventory.repositories.InventoryRepository;
-import com.cocobongo.cerveceria.branches.dto.BranchResponseDTO;
-import com.cocobongo.cerveceria.branches.services.BranchesService;
 import com.cocobongo.cerveceria.inventory.repositories.ProductRepository;
 import com.cocobongo.cerveceria.inventory.repositories.ProviderRepository;
 
 import jakarta.persistence.EntityNotFoundException;
-
-import com.cocobongo.cerveceria.inventory.entities.ProductEntity;
 
 @Service
 public class InventoryService {
@@ -194,15 +192,15 @@ public class InventoryService {
                 .build();
 
         // Requiere datos de sucursal para crear el inventario asociado.
-        if (newp.getBranch() == null) {
+        if (newp.getBranchId() == null) {
             throw new BusinessException("La sucursal es obligatoria al crear un producto y su inventario.");
         }
 
         // Primero se guarda el producto para obtener su id generado.
         productRepository.save(e);
 
-        // Luego se crea la sucursal nueva y se utiliza su id para inventario.
-        BranchResponseDTO branch = branchesService.createBranch(newp.getBranch());
+        // Luego se busca la sucursal nueva y se utiliza su id para inventario.
+        BranchResponseDTO branch = branchesService.findBranch(newp.getBranchId());
 
         InventoryEntity inventory = new InventoryEntity();
         inventory.setIdProduct(e.getIdProduct());

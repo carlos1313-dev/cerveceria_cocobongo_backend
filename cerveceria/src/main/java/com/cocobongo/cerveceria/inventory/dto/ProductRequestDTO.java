@@ -2,7 +2,6 @@ package com.cocobongo.cerveceria.inventory.dto;
 
 import java.math.BigDecimal;
 
-import com.cocobongo.cerveceria.branches.dto.BranchRequestDTO;
 import com.cocobongo.cerveceria.inventory.entities.ProductType;
 import com.fasterxml.jackson.annotation.JsonProperty;
 
@@ -42,8 +41,8 @@ public class ProductRequestDTO {
     @JsonProperty("isActive")
     private Boolean isActive;
 
-    @JsonProperty("branch")
-    private BranchRequestDTO branch;
+    @JsonProperty("branchId")
+    private Integer branchId;
 
     @PositiveOrZero(message = "El stock inicial no puede ser negativo")
     private Integer initialStock;
