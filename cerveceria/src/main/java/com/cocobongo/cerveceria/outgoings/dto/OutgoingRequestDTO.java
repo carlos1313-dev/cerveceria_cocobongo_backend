@@ -1,9 +1,7 @@
 package com.cocobongo.cerveceria.outgoings.dto;
 
 
-import com.cocobongo.cerveceria.branches.entities.BranchEntity;
 import com.cocobongo.cerveceria.outgoings.entities.OutgoingType;
-import com.cocobongo.cerveceria.users.entities.UserEntity;
 
 import jakarta.validation.constraints.NotNull;
 import jakarta.validation.constraints.Positive;
@@ -19,10 +17,10 @@ import java.time.LocalDateTime;
 public class OutgoingRequestDTO {
 
     @NotNull(message = "La sucursal es obligatoria")
-    private BranchEntity idBranch;
+    private Integer idBranch;
 
     @NotNull(message = "El usuario es obligatorio")
-    private UserEntity idUser;
+    private Integer idUser;
 
     @NotNull(message = "El tipo de egreso es obligatorio")
     private OutgoingType type;

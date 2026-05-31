@@ -8,6 +8,7 @@ import org.springframework.data.domain.Page;
 import org.springframework.data.domain.Pageable;
 import org.springframework.stereotype.Service;
 
+import com.cocobongo.cerveceria.branches.entities.BranchEntity;
 import com.cocobongo.cerveceria.common.exception.BusinessException;
 import com.cocobongo.cerveceria.common.exception.ResourceNotFoundException;
 import com.cocobongo.cerveceria.outgoings.dto.BalanceReport;
@@ -16,6 +17,7 @@ import com.cocobongo.cerveceria.outgoings.dto.OutgoingResponseDTO;
 import com.cocobongo.cerveceria.outgoings.entities.OutgoingEntity;
 import com.cocobongo.cerveceria.outgoings.repositories.OutgoingsRepository;
 import com.cocobongo.cerveceria.reports.services.ReportsService;
+import com.cocobongo.cerveceria.users.entities.UserEntity;
 
 import jakarta.transaction.Transactional;
 import lombok.extern.slf4j.Slf4j;
@@ -57,8 +59,8 @@ public class OutgoingsService {
                     }
 
                     OutgoingEntity o = OutgoingEntity.builder()
-                                        .idBranch(outgoing.getIdBranch())
-                                        .idUser(outgoing.getIdUser())
+                                        .idBranch(BranchEntity.builder().idBranch(outgoing.getIdBranch()).build())
+                                        .idUser(UserEntity.builder().idUser(outgoing.getIdUser()).build())
                                         .type(outgoing.getType())
                                         .date(outgoing.getDate())
                                         .total(outgoing.getTotal())
@@ -81,8 +83,8 @@ public class OutgoingsService {
                               throw new BusinessException("El total del gasto no puede ser null");
                     }
 
-                    up.setIdBranch(upOutgoing.getIdBranch());
-                    up.setIdUser(upOutgoing.getIdUser());
+                    up.setIdBranch(BranchEntity.builder().idBranch(upOutgoing.getIdBranch()).build());
+                    up.setIdUser(UserEntity.builder().idUser(upOutgoing.getIdUser()).build());
                     up.setType(upOutgoing.getType());
                     up.setDate(upOutgoing.getDate());
                     up.setTotal(upOutgoing.getTotal());
@@ -123,8 +125,8 @@ public class OutgoingsService {
 
                     return OutgoingResponseDTO.builder()
                                         .idOutgoing(entity.getIdOutgoing())
-                                        .idBranch(entity.getIdBranch())
-                                        .idUser(entity.getIdUser())
+                                        .idBranch(entity.getIdBranch() != null ? entity.getIdBranch().getIdBranch() : null)
+                                        .idUser(entity.getIdUser() != null ? entity.getIdUser().getIdUser() : null)
                                         .type(entity.getType())
                                         .date(entity.getDate())
                                         .total(entity.getTotal())
