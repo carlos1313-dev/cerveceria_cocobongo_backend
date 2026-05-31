@@ -479,16 +479,67 @@ CREATE INDEX idx_audit_user         ON audit(id_user);
 CREATE INDEX idx_audit_action       ON audit(action);
 CREATE INDEX idx_audit_date         ON audit(created_at);
 
---Reportes: vistas de reportes diarios, semanales y mensuales.
-CREATE VIEW v_daily_report AS 
-SELECT * FROM sale WHERE sale_date = CURRENT_DATE;
+-- =============================================================================
+-- VISTAS
+-- =============================================================================
 
-CREATE VIEW v_weekly_report AS 
-SELECT * FROM sale 
-WHERE sale_date =< CURRENT_DATE + INTERVAL 1 DAY 
-AND sale_date > CURRENT_DATE - INTERVAL 7 DAY;
+-- Vista: reporte diario (ventas de hoy)
+CREATE VIEW v_daily_report AS
+SELECT
+    s.id_sale,
+    s.sale_date,
+    s.total,
+    s.status,
+    s.id_branch,
+    s.id_client,
+    s.id_user
+FROM sale s
+WHERE DATE(s.sale_date) = CURRENT_DATE
+    AND s.status = 'COMPLETED';
 
-CREATE VIEW v_monthly_report AS 
-SELECT * FROM sale WHERE
-sale_date =< CURRENT_DATE + INTERVAL 1 DAY AND
-sale_date > CURRENT_DATE - INTERVAL 30 DAY;
+-- Vista: reporte semanal (últimos 7 días)
+CREATE VIEW v_weekly_report AS
+SELECT
+    s.id_sale,
+    s.sale_date,
+    s.total,
+    s.status,
+    s.id_branch,
+    s.id_client,
+    s.id_user
+FROM sale s
+WHERE s.sale_date >= CURRENT_DATE - INTERVAL 7 DAY
+    AND s.sale_date <  CURRENT_DATE + INTERVAL 1 DAY
+     AND s.status = 'COMPLETED';
+
+-- Vista: reporte mensual (últimos 30 días)
+CREATE VIEW v_monthly_report AS
+SELECT
+    s.id_sale,
+    s.sale_date,
+    s.total,
+    s.status,
+    s.id_branch,
+    s.id_client,
+    s.id_user
+FROM sale s
+WHERE s.sale_date >= CURRENT_DATE - INTERVAL 30 DAY
+    AND s.sale_date <  CURRENT_DATE + INTERVAL 1 DAY
+    AND s.status = 'COMPLETED';
+
+
+-- Vista integrada: resumen agregado por período y sucursal
+CREATE VIEW v_period_summary AS
+SELECT
+    s.id_branch,
+    b.name                              AS branch_name,
+    DATE(s.sale_date)                   AS sale_day,
+    COUNT(DISTINCT s.id_sale)           AS total_sales,
+    SUM(s.total)                        AS gross_income,
+    SUM((sd.unit_price - p.cost) * sd.quantity)                 AS estimated_profit
+FROM sale s
+JOIN sale_detail sd ON sd.id_sale   = s.id_sale
+JOIN product     p  ON p.id_product = sd.id_product
+JOIN branch      b  ON b.id_branch  = s.id_branch
+WHERE s.status = 'COMPLETED'
+GROUP BY s.id_branch, b.name, DATE(s.sale_date);
