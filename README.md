@@ -163,6 +163,7 @@ El modelo incluye 13 tablas principales:
 | GET | `/api/v1/reports/sales` | Ventas por periodo (filtros: from, to, branchId) |
 | GET | `/api/v1/reports/summary` | Resumen del negocio / métricas (filtro: period) |
 | GET | `/api/v1/reports/profit-by-branch` | Ventas y ganancias por sucursal |
+| GET | `/api/v1/reports/period-summary` | Resumen periodo |
 
 ### 💸 Gastos (`/api/v1/outgoings`)
 
