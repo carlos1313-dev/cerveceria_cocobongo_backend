@@ -112,21 +112,23 @@ public interface ReportRepository extends JpaRepository<SaleEntity, Integer> {
  
     // ── Ventas agrupadas por sucursal ─────────────────────────────────────
     // GET /api/v1/reports/sales/by-branch?period=
-    @Query("SELECT NEW com.cocobongo.cerveceria.reports.dto.BranchSalesReportDTO(" +
-           "    s.branch.idBranch, " +
-           "    s.branch.name, " +
-           "    s.branch.city, " +
-           "    COUNT(DISTINCT s.idSale), " +
-           "    SUM(sd.subtotal), " +
-           "    SUM((sd.unitPrice - sd.product.cost) * sd.quantity)" +
-           ") " +
-           "FROM SaleEntity s " +
-           "JOIN s.details sd " +
-           "WHERE s.status = 'COMPLETED' " +
-           "AND (:from IS NULL OR s.saleDate >= :from) " +
-           "AND (:to   IS NULL OR s.saleDate <= :to) " +
-           "GROUP BY s.branch.idBranch, s.branch.name, s.branch.city " +
-           "ORDER BY SUM(sd.subtotal) DESC")
+    @Query(value = "SELECT " +
+               "    s.id_branch                                       AS idBranch, " +
+               "    b.name                                            AS branchName, " +
+               "    b.city                                            AS city, " +
+               "    COUNT(DISTINCT s.id_sale)                         AS totalSales, " +
+               "    SUM(sd.subtotal)                                  AS grossIncome, " +
+               "    SUM((sd.unit_price - p.cost) * sd.quantity)       AS estimatedProfit " +
+               "FROM sale s " +
+               "JOIN sale_detail sd ON sd.id_sale   = s.id_sale " +
+               "JOIN product     p  ON p.id_product = sd.id_product " +
+               "JOIN branch      b  ON b.id_branch  = s.id_branch " +
+               "WHERE s.status = 'COMPLETED' " +
+               "AND (CAST(:from AS timestamp) IS NULL OR s.sale_date >= CAST(:from AS timestamp)) " +
+               "AND (CAST(:to   AS timestamp) IS NULL OR s.sale_date <= CAST(:to   AS timestamp)) " +
+               "GROUP BY s.id_branch, b.name, b.city " +
+               "ORDER BY SUM(sd.subtotal) DESC",
+       nativeQuery = true)
     List<BranchSalesReportDTO> findSalesByBranch(
             @Param("from") LocalDateTime from,
             @Param("to")   LocalDateTime to);
