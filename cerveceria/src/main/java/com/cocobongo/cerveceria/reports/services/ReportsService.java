@@ -18,6 +18,7 @@ import com.cocobongo.cerveceria.reports.dto.SaleReportDTO;
 import com.cocobongo.cerveceria.reports.dto.SalesSummaryDTO;
 import com.cocobongo.cerveceria.reports.dto.TopProductDTO;
 import com.cocobongo.cerveceria.reports.repositories.ReportRepository;
+import com.cocobongo.cerveceria.sales.entities.SaleEntity;
 
 import lombok.RequiredArgsConstructor;
 
@@ -31,31 +32,57 @@ public class ReportsService {
 
     private final ReportRepository reportRepository;
 
+    // Rango seguro cuando no se especifica fecha
+    private static final LocalDateTime MIN_DATE = LocalDateTime.of(2000,  1,  1,  0,  0,  0);
+    private static final LocalDateTime MAX_DATE = LocalDateTime.of(2100, 12, 31, 23, 59, 59);
+
+    private LocalDateTime safeFrom(LocalDateTime from) { return from != null ? from : MIN_DATE; }
+    private LocalDateTime safeTo  (LocalDateTime to)   { return to   != null ? to   : MAX_DATE; }
+
     @Transactional(readOnly = true)
-    public Page<SaleReportDTO> getSalesByPeriod(LocalDateTime from, LocalDateTime to, Integer branchId, Pageable pageable) {
-        return reportRepository.findByPeriodAndBranch(from, to, branchId, pageable)
-            .map(sale -> SaleReportDTO.builder()
-                    .idSale(sale.getIdSale())
-                    .saleDate(sale.getSaleDate())
-                    .total(sale.getTotal())
-                    .branchName(sale.getBranch().getName())
-                    .clientName(sale.getClient() != null ? sale.getClient().getName() : null)
-                    .registeredBy(sale.getUser()   != null ? sale.getUser().getName() : null)
-                    .paymentType(sale.getPaymentType())
-                    .status(sale.getStatus())
-                    .build());
+    public Page<SaleReportDTO> getSalesByPeriod(LocalDateTime from, LocalDateTime to,
+                                                Integer branchId, Pageable pageable) {
+        LocalDateTime f = safeFrom(from);
+        LocalDateTime t = safeTo(to);
+
+        Page<SaleEntity> page = branchId == null
+                ? reportRepository.findByPeriod(f, t, pageable)
+                : reportRepository.findByPeriodAndBranch(f, t, branchId, pageable);
+
+        return page.map(sale -> SaleReportDTO.builder()
+                .idSale(sale.getIdSale())
+                .saleDate(sale.getSaleDate())
+                .total(sale.getTotal())
+                .branchName(sale.getBranch().getName())
+                .clientName(sale.getClient()   != null ? sale.getClient().getName() : null)
+                .registeredBy(sale.getUser()   != null ? sale.getUser().getName()   : null)
+                .paymentType(sale.getPaymentType())
+                .status(sale.getStatus())
+                .build());
     }
 
     @Transactional(readOnly = true)
     public SalesSummaryDTO getSummary(LocalDateTime from, LocalDateTime to, Integer branchId) {
+        LocalDateTime f = safeFrom(from);
+        LocalDateTime t = safeTo(to);
 
-        Long       totalSales      = reportRepository.countSales(from, to, branchId);
-        BigDecimal grossIncome     = reportRepository.sumGrossIncome(from, to, branchId);
-        BigDecimal estimatedProfit = reportRepository.calculateEstimatedProfit(from, to, branchId);
+        Long       totalSales      = branchId == null
+                ? reportRepository.countSales(f, t)
+                : reportRepository.countSalesByBranch(f, t, branchId);
+
+        BigDecimal grossIncome     = branchId == null
+                ? reportRepository.sumGrossIncome(f, t)
+                : reportRepository.sumGrossIncomeByBranch(f, t, branchId);
+
+        BigDecimal estimatedProfit = branchId == null
+                ? reportRepository.calculateEstimatedProfit(f, t)
+                : reportRepository.calculateEstimatedProfitByBranch(f, t, branchId);
+
         BigDecimal estimatedCost   = grossIncome.subtract(estimatedProfit);
 
-        List<TopProductDTO> topProducts = reportRepository.findTopProducts(
-                from, to, branchId, PageRequest.of(0, 5));
+        List<TopProductDTO> topProducts = branchId == null
+                ? reportRepository.findTopProducts(f, t, PageRequest.of(0, 5))
+                : reportRepository.findTopProductsByBranch(f, t, branchId, PageRequest.of(0, 5));
 
         return SalesSummaryDTO.builder()
                 .totalSales(totalSales)
