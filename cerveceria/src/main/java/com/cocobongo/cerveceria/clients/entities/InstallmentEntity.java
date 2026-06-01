@@ -36,7 +36,7 @@ public class InstallmentEntity {
 	@Id
 	@GeneratedValue(strategy = GenerationType.IDENTITY)
 	@Column(name = "id_installment")
-	private Long idInstallment;
+	private Integer idInstallment;
 
 	@ManyToOne(fetch = FetchType.LAZY, optional = false)
 	@JoinColumn(name = "id_client", nullable = false)

@@ -1,16 +1,25 @@
 package com.cocobongo.cerveceria.inventory.dto;
 
-import com.cocobongo.cerveceria.inventory.entities.InventoryEntity;
+import java.math.BigDecimal;
+
 import com.cocobongo.cerveceria.inventory.entities.ProductType;
 
 import lombok.Data;
+import lombok.AllArgsConstructor;
+import lombok.NoArgsConstructor;
+import lombok.Builder;
 
 @Data
+@AllArgsConstructor
+@NoArgsConstructor
+@Builder
 public class InventoryResponseDTO {
 
     // Identificadores del producto y sucursal
     private Integer idProduct;
     private Integer idBranch;
+    private Integer idProvider;
+
 
     // Stock actual y stock mínimo configurado
     private Integer stock;
@@ -18,21 +27,8 @@ public class InventoryResponseDTO {
 
     // Datos adicionales del producto (para respuesta)
     private String productName;
-    private  ProductType productType;
+    private ProductType productType;
+    private BigDecimal price;
+    private BigDecimal cost;
 
-    public InventoryResponseDTO() {}
-
-    // Constructor que transforma la entidad en DTO
-    public InventoryResponseDTO(InventoryEntity i) {
-        this.idProduct = i.getIdProduct();
-        this.idBranch  = i.getIdBranch();
-        this.stock     = i.getStock();
-        this.minStock  = i.getMinStock();
-
-        // evitar NullPointerException
-        if (i.getProduct() != null) {
-            this.productName = i.getProduct().getName();
-            this.productType = i.getProduct().getType();
-        }
-    }
 }

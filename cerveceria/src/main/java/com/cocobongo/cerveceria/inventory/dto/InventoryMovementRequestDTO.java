@@ -1,32 +1,39 @@
 package com.cocobongo.cerveceria.inventory.dto;
 
-import jakarta.validation.constraints.*;
+import java.time.LocalDateTime;
+
+import jakarta.validation.constraints.NotNull;
+import jakarta.validation.constraints.PastOrPresent;
+import jakarta.validation.constraints.Pattern;
+import jakarta.validation.constraints.Positive;
 import lombok.Data;
 
 @Data
 public class InventoryMovementRequestDTO {
 
     // ID del producto sobre el cual se realizará el movimiento de inventario
-    @NotNull(message = "Product id is required")
+    @NotNull(message = "Id del producto es requerido")
     private Integer idProduct;
 
     // ID de la sucursal donde ocurre el movimiento
-    @NotNull(message = "Branch id is required")
+    @NotNull(message = "Id de la sucursal es requerido")
     private Integer idBranch;
 
-    // Cantidad de unidades a ingresar (debe ser mayor a 0)
-    @NotNull(message = "Quantity is required")
-    @Positive(message = "Quantity must be greater than 0")
-    private Integer quantity;
+    @NotNull(message = "Tipo es requerido")
+    @Pattern(regexp = "IN|OUT", message = "Tipo debe ser 'IN' o 'OUT'")
+    private String type;
 
-    // Motivo del movimiento (solo PURCHASE o ADJUSTMENT)
-    // Se valida aquí para evitar valores inválidos desde la entrada
-    @Pattern(
-        regexp = "PURCHASE|ADJUSTMENT",
-        message = "Reason must be either PURCHASE or ADJUSTMENT"
-    )
+    @NotNull(message = "Razón es requerida")
+    @Pattern(regexp = "PURCHASE|ADJUSTMENT", message = "Razón debe ser 'PURCHASE' o 'ADJUSTMENT'")
     private String reason = "PURCHASE";
 
-    // Observaciones opcionales del movimiento
-    private String notes;
+    // Cantidad de unidades a ingresar (debe ser mayor a 0)
+    @NotNull(message = "Cantidad es requerida")
+    @Positive(message = "Cantidad debe ser mayor a 0")
+    private Integer quantity;
+
+    @PastOrPresent(message = "La fecha no puede ser futura")
+    private LocalDateTime movementDate;
+
+    private Integer idReference;
 }

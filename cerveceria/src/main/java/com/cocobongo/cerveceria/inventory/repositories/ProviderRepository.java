@@ -1,12 +1,14 @@
 package com.cocobongo.cerveceria.inventory.repositories;
 
-import com.cocobongo.cerveceria.inventory.entities.ProviderEntity;
+import java.util.List;
+import java.util.Optional;
 
-import java.util.*;
 import org.springframework.data.jpa.repository.JpaRepository;
-import org.springframework.data.repository.query.Param;
 import org.springframework.data.jpa.repository.Query;
+import org.springframework.data.repository.query.Param;
 import org.springframework.stereotype.Repository;
+
+import com.cocobongo.cerveceria.inventory.entities.ProviderEntity;
 
 @Repository
 public interface ProviderRepository extends JpaRepository<ProviderEntity, Integer> {
@@ -26,7 +28,7 @@ public interface ProviderRepository extends JpaRepository<ProviderEntity, Intege
 
     // Verifica si un proveedor tiene productos activos asociados
     @Query("SELECT COUNT(pr) > 0 FROM ProductEntity pr " +
-           "WHERE pr.idProvider = :idProvider " +
+           "WHERE pr.provider.idProvider = :idProvider " +
            "AND pr.isActive = true")
     boolean hasActiveProducts(@Param("idProvider") Integer idProvider);
 }

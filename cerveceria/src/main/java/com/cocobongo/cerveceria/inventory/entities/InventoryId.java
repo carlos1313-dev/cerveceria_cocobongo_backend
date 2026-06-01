@@ -21,9 +21,9 @@ public class InventoryId implements Serializable {
 
     @Column(name = "id_product")
 @NotNull(message = "El ID del producto es obligatorio")
-	private Long idProduct;
+	private Integer idProduct;
 
     @Column(name = "id_branch")
     @NotNull(message = "El ID de la sucursal es obligatorio")
-    private Long idBranch;
+    private Integer idBranch;
 }
