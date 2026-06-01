@@ -483,59 +483,20 @@ CREATE INDEX idx_audit_date         ON audit(created_at);
 -- VISTAS
 -- =============================================================================
 
--- Vista: reporte diario (ventas de hoy)
-CREATE VIEW v_daily_report AS
-SELECT
-    s.id_sale,
-    s.sale_date,
-    s.total,
-    s.status,
-    s.id_branch,
-    s.id_client,
-    s.id_user
-FROM sale s
-WHERE DATE(s.sale_date) = CURRENT_DATE
-    AND s.status = 'COMPLETED';
+-- DROP VIEW v_period_summary
 
--- Vista: reporte semanal (últimos 7 días)
-CREATE VIEW v_weekly_report AS
-SELECT
-    s.id_sale,
-    s.sale_date,
-    s.total,
-    s.status,
-    s.id_branch,
-    s.id_client,
-    s.id_user
-FROM sale s
-WHERE s.sale_date >= CURRENT_DATE - INTERVAL '7' DAY
-    AND s.sale_date <  CURRENT_DATE + INTERVAL '1' DAY
-     AND s.status = 'COMPLETED';
-
--- Vista: reporte mensual (últimos 30 días)
-CREATE VIEW v_monthly_report AS
-SELECT
-    s.id_sale,
-    s.sale_date,
-    s.total,
-    s.status,
-    s.id_branch,
-    s.id_client,
-    s.id_user
-FROM sale s
-WHERE s.sale_date >= CURRENT_DATE - INTERVAL '30' DAY
-    AND s.sale_date <  CURRENT_DATE + INTERVAL '1' DAY
-    AND s.status = 'COMPLETED';
-
-
--- Vista integrada: resumen agregado por período y sucursal
+-- VISTA: v_period_summary
+-- Combina las tablas sale, sale_detail, product y branch.
+-- Muestra el total de ventas, ingresos brutos y utilidad estimada
+-- agrupados por sucursal y día, considerando solo ventas completadas.
+-- Usada para reportes de rendimiento periódico por sucursal.
 CREATE VIEW v_period_summary AS
 SELECT
     s.id_branch,
-    b.name                              AS branch_name,
-    DATE(s.sale_date)                   AS sale_day,
-    COUNT(DISTINCT s.id_sale)           AS total_sales,
-    SUM(s.total)                        AS gross_income,
+    b.name                                                       AS branch_name,
+    DATE(s.sale_date)                                            AS sale_day,
+    COUNT(DISTINCT s.id_sale)                                    AS total_sales,
+    SUM(s.total)                                                 AS gross_income,
     SUM((sd.unit_price - p.cost) * sd.quantity)                 AS estimated_profit
 FROM sale s
 JOIN sale_detail sd ON sd.id_sale   = s.id_sale
@@ -543,3 +504,143 @@ JOIN product     p  ON p.id_product = sd.id_product
 JOIN branch      b  ON b.id_branch  = s.id_branch
 WHERE s.status = 'COMPLETED'
 GROUP BY s.id_branch, b.name, DATE(s.sale_date);
+
+-- =============================================================================
+-- INSERTS
+-- =============================================================================
+
+-- 1. Proveedores (sin dependencias)
+INSERT INTO provider (name, telephone, address, email, is_active) VALUES
+  ('Maltería Bavaria',    '6012345678', 'Calle 13 # 31-55, Bogotá',  'compras@bavaria.com',  TRUE),
+  ('Lúpulos del Sur',      '3001234567', 'Carrera 7 # 10-20, Medellín', 'ventas@lupulos.co',    TRUE),
+  ('Insumos Craft SAS',    '6017654321', 'Av. 68 # 22-31, Bogotá',    'info@inscraft.co',     TRUE),
+  ('Levaduras Express',    '3109876543', 'Calle 80 # 45-10, Bogotá',  NULL,                      TRUE);
+
+-- 2. Sucursales (sin dependencias)
+INSERT INTO branch (name, address, city, is_active) VALUES
+  ('Sede Principal',  'Calle 45 # 12-30', 'Bogotá',   TRUE),
+  ('Sede Norte',      'Carrera 15 # 88-20', 'Bogotá', TRUE),
+  ('Sede Medellín',   'El Poblado # 3-15',  'Medellín', TRUE);
+
+-- 3. Productos (depende de provider)
+INSERT INTO product (id_provider, name, description, type, cost, price, is_active) VALUES
+  -- RESALE: comprados para revender
+  (1, 'Cerveza Águila 330ml',  'Lata 330ml',              'RESALE', 1800.00, 3500.00, TRUE),
+  (1, 'Cerveza Club Colombia', 'Botella 330ml',           'RESALE', 2200.00, 4000.00, TRUE),
+  (3, 'Vaso Pinta 500ml',       'Vaso desechable branded', 'RESALE',  200.00,  500.00, TRUE),
+  -- SUPPLY: insumos para producción propia
+  (2, 'Lúpulo Cascade 100g',  'Insumo para recetas IPA', 'SUPPLY',  8000.00,      0.00, TRUE),
+  (4, 'Levadura Ale US-05',   'Sachet 11g',              'SUPPLY',  6000.00,      0.00, TRUE),
+  -- MADE: elaborados en casa (sin proveedor)
+  (NULL, 'IPA Artesanal 500ml',  'Receta propia con Cascade', 'MADE',  4500.00, 12000.00, TRUE),
+  (NULL, 'Stout Oscura 500ml',   'Cuerpo cremoso, tostado',  'MADE',  5000.00, 14000.00, TRUE);
+
+-- 4. Usuarios (depende de branch)
+-- password_hash: bcrypt de 'Admin123!' y 'Empleado1!' respectivamente (60 chars)
+INSERT INTO users (id_branch, name, email, password_hash, role, is_active) VALUES
+  (1, 'Carlos Rodríguez', 'carlos.admin@cerveceria.co',
+   '$2b$12$LQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/o9pZZ5ggi', 'ADMIN',    TRUE),
+  (1, 'Ana Torres',       'ana.torres@cerveceria.co',
+   '$2b$12$MQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/o9pZZ5gg2', 'EMPLOYEE', TRUE),
+  (2, 'Luis Peña',         'luis.pena@cerveceria.co',
+   '$2b$12$NQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/o9pZZ5gg3', 'EMPLOYEE', TRUE),
+  (3, 'Sandra Gómez',      'sandra.gomez@cerveceria.co',
+   '$2b$12$OQv3c1yqBWVHxkd0LHAkCOYz6TtxMQJqhN8/LewdBPj/o9pZZ5gg4', 'EMPLOYEE', TRUE);
+
+-- 5. Clientes (sin dependencias)
+INSERT INTO client (name, telephone, email, balance, is_active) VALUES
+  ('Juan Martínez',   '3001112233', 'juan.m@gmail.com',    0.00,      TRUE),
+  ('Tienda La Esquina','6013334455', 'laesquina@tienda.co', 45000.00, TRUE),
+  ('Bar El Refugio',   '3209876543', NULL,                  120000.00,TRUE),
+  ('Pedro Alvarado',   '3155551234', 'pedro.a@hotmail.com', 0.00,      TRUE);
+
+-- 6. Inventario inicial (depende de product y branch)
+INSERT INTO inventory (id_product, id_branch, stock, min_stock) VALUES
+  -- Sede Principal
+  (1, 1, 120, 20),  -- Cerveza Águila
+  (2, 1,  80, 15),  -- Cerveza Club Colombia
+  (3, 1, 200, 50),  -- Vaso Pinta
+  (4, 1,  10,  2),  -- Lúpulo Cascade
+  (5, 1,  15,  3),  -- Levadura
+  (6, 1,  40, 10),  -- IPA Artesanal
+  (7, 1,  30,  8),  -- Stout Oscura
+  -- Sede Norte
+  (1, 2,  60, 10),
+  (2, 2,  40, 10),
+  (6, 2,  20,  5),
+  -- Sede Medellín
+  (1, 3,  50, 10),
+  (7, 3,  25,  5);
+
+-- 7. Ventas y detalle (depende de branch, users, client)
+INSERT INTO sale (id_branch, id_user, id_client, sale_date, total, payment_type, status) VALUES
+  (1, 2, 1,    '2025-05-10 14:30:00', 19500.00, 'CASH',     'COMPLETED'), -- id 1
+  (1, 2, 2,    '2025-05-11 11:00:00', 48000.00, 'CREDIT',   'PENDING'),   -- id 2
+  (2, 3, NULL, '2025-05-12 20:00:00', 26000.00, 'CARD',     'COMPLETED'), -- id 3
+  (1, 2, 3,    '2025-05-13 18:45:00', 84000.00, 'CREDIT',   'PENDING'),   -- id 4
+  (3, 4, NULL, '2025-05-14 16:00:00', 14000.00, 'TRANSFER', 'COMPLETED'); -- id 5
+
+INSERT INTO sale_detail (id_sale, id_product, quantity, unit_price, subtotal) VALUES
+  -- Venta 1: 3 Águila + 3 Club Colombia
+  (1, 1, 3, 3500.00, 10500.00),
+  (1, 2, 2, 4000.00,  8000.00),
+  (1, 3, 2,  500.00,  1000.00),
+  -- Venta 2: 4 IPA Artesanal
+  (2, 6, 4, 12000.00, 48000.00),
+  -- Venta 3: 2 IPA artesanal + 1 Club Colombia
+  (3, 6, 2, 12000.00, 24000.00),
+  (3, 2, 1,  4000.00,  4000.00),
+  -- Venta 4: 6 Stout Oscura
+  (4, 7, 6, 14000.00, 84000.00),
+  -- Venta 5: 1 Stout Oscura
+  (5, 7, 1, 14000.00, 14000.00);
+
+-- 8. Abonos a créditos (depende de client, users, sale)
+INSERT INTO installment (id_client, id_user, id_sale, amount, payment_date, notes) VALUES
+  -- Abono de Tienda La Esquina a venta 2
+  (2, 2, 2, 20000.00, '2025-05-14 10:00:00', 'Abono efectivo en tienda'),
+  -- Abono general de Bar El Refugio (no ligado a venta específica)
+  (3, 1, NULL, 50000.00, '2025-05-15 09:00:00', 'Transferencia bancaria');
+
+-- 9. Movimientos de inventario (depende de product, branch, users)
+INSERT INTO inventory_movement
+  (id_product, id_branch, id_user, type, reason, quantity, movement_date, id_reference) VALUES
+  -- Compra inicial de Águila en Sede Principal
+  (1, 1, 1, 'IN',  'PURCHASE',   120, '2025-05-01 08:00:00', NULL),
+  -- Salida por venta 1 (3 unidades Águila)
+  (1, 1, 2, 'OUT', 'SALE',       3,   '2025-05-10 14:30:00', 1),
+  -- Producción de IPA: entrada de producto terminado
+  (6, 1, 1, 'IN',  'PRODUCTION', 40,  '2025-05-05 07:00:00', NULL),
+  -- Producción de IPA: salida de insumo Lúpulo
+  (4, 1, 1, 'OUT', 'PRODUCTION', 5,   '2025-05-05 07:00:00', NULL),
+  -- Traslado: OUT en Sede Principal, id_reference apunta al movimiento IN (id 6)
+  (1, 1, 1, 'OUT', 'TRANSFER',  20,  '2025-05-08 10:00:00', 6),
+  -- Traslado: IN en Sede Norte
+  (1, 2, 1, 'IN',  'TRANSFER',  20,  '2025-05-08 10:00:00', 5),
+  -- Ajuste manual: corrección de stock de Vaso Pinta
+  (3, 1, 1, 'IN',  'ADJUSTMENT', 50,  '2025-05-09 09:00:00', NULL);
+
+-- 10. Gastos (depende de branch y users)
+INSERT INTO outgoing (id_branch, id_user, type, date, total, description) VALUES
+  (1, 1, 'RENT',        '2025-05-01', 2500000.00, 'Arriendo mayo Sede Principal'),
+  (2, 1, 'RENT',        '2025-05-01', 1800000.00, 'Arriendo mayo Sede Norte'),
+  (1, 1, 'SERVICES',    '2025-05-05',  180000.00, 'Internet + servicios públicos'),
+  (1, 1, 'EMPLOYEE',    '2025-05-15', 1200000.00, 'Quincena empleados Sede Principal'),
+  (1, 2, 'MAINTENANCE', '2025-05-12',   95000.00, 'Reparación nevera industrial'),
+  (3, 4, 'OTHER',       '2025-05-14',   45000.00, 'Material de limpieza');
+
+-- 11. Sesiones (depende de users)
+INSERT INTO sessions (id_user, token, created_at, expires_at, is_active) VALUES
+  (1, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.admin1.abc123',
+   '2025-05-15 08:00:00', '2025-05-15 20:00:00', TRUE),
+  (2, 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.emp2.def456',
+   '2025-05-15 09:00:00', '2025-05-15 21:00:00', TRUE);
+
+-- 12. Auditoría (depende de users y sessions)
+INSERT INTO audit (id_user, id_session, action, table_name, id_record, detail, ip_address) VALUES
+  (1, 1, 'LOGIN_OK',       NULL,    NULL, 'Inicio de sesión exitoso',         '192.168.1.10'),
+  (2, 2, 'LOGIN_OK',       NULL,    NULL, 'Inicio de sesión exitoso',         '192.168.1.11'),
+  (2, 2, 'SALE_CREATED',   'sale',  1,    'Venta efectivo $19.500',           '192.168.1.11'),
+  (2, 2, 'SALE_CREATED',   'sale',  2,    'Venta crédito $48.000 cliente 2',  '192.168.1.11'),
+  (1, 1, 'INVENTORY_ADJUSTED','inventory',3,'Ajuste +50 Vaso Pinta sede 1',    '192.168.1.10'),
+  (NULL, NULL, 'LOGIN_FAIL', NULL, NULL, 'Intento fallido usuario desconocido','10.0.0.55');
