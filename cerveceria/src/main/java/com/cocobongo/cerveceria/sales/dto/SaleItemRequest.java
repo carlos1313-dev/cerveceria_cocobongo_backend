@@ -12,6 +12,9 @@ public class SaleItemRequest {
  
     @NotNull(message = "El id del producto es obligatorio")
     private Integer productId;
+
+    @NotNull(message = "La sucursal del producto es obligatoria")
+    private Integer branchId;
  
     @NotNull(message = "La cantidad es obligatoria")
     @Min(value = 1, message = "La cantidad debe ser al menos 1")

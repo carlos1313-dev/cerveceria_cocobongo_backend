@@ -10,6 +10,7 @@ import org.springframework.transaction.annotation.Transactional;
 import com.cocobongo.cerveceria.branches.entities.BranchEntity;
 import com.cocobongo.cerveceria.branches.services.BranchesService;
 import com.cocobongo.cerveceria.clients.entities.ClientEntity;
+import com.cocobongo.cerveceria.clients.services.ClientService;
 import com.cocobongo.cerveceria.common.exception.BusinessException;
 import com.cocobongo.cerveceria.common.exception.ResourceNotFoundException;
 import com.cocobongo.cerveceria.inventory.dto.InventoryResponseDTO;
@@ -26,7 +27,6 @@ import com.cocobongo.cerveceria.sales.entities.SaleEntity;
 import com.cocobongo.cerveceria.sales.entities.SaleStatus;
 import com.cocobongo.cerveceria.sales.repositories.SaleRepository;
 import com.cocobongo.cerveceria.users.entities.UserEntity;
-import com.cocobongo.cerveceria.clients.services.ClientService;
 
 import lombok.RequiredArgsConstructor;
 
@@ -56,26 +56,27 @@ public class SalesService {
             client = clientService.getClientReference(request.getClientId());
         }
 
-        // Resolver sucursal del usuario que registra la venta
-        if (currentUser.getIdBranch() == null) {
-            throw new BusinessException("El usuario no tiene una sucursal asignada");
-        }
-
-        branchService.findBranch(currentUser.getIdBranch());
-
-        BranchEntity branch = new BranchEntity();
-        branch.setIdBranch(currentUser.getIdBranch());
-
         // ── 2. Procesar cada item: stock + movimiento ──────────────────────────
         List<SaleDetailEntity> details = new ArrayList<>();
         BigDecimal totalSale = BigDecimal.ZERO;
+        Integer saleBranchId = null;
 
         for (SaleItemRequest item : request.getItems()) {
+            Integer itemBranchId = item.getBranchId();
+            if (itemBranchId == null) {
+                throw new BusinessException("La sucursal del producto es obligatoria");
+            }
+            if (saleBranchId == null) {
+                saleBranchId = itemBranchId;
+                branchService.findBranch(saleBranchId);
+            } else if (!saleBranchId.equals(itemBranchId)) {
+                throw new BusinessException("Todos los productos deben pertenecer a la misma sucursal");
+            }
 
             ProductEntity product = inventoryService.findActiveProductById(item.getProductId());
 
             List<InventoryResponseDTO> inventoryList = inventoryService
-                    .findByProductAndBranch(item.getProductId(), currentUser.getIdBranch());
+                    .findByProductAndBranch(item.getProductId(), itemBranchId);
 
             if (inventoryList.isEmpty()) {
                 throw new ResourceNotFoundException(
@@ -102,6 +103,13 @@ public class SalesService {
                     .build();
             details.add(detail);
         }
+
+        if (saleBranchId == null) {
+            throw new BusinessException("La sucursal de la venta es obligatoria");
+        }
+
+        BranchEntity branch = new BranchEntity();
+        branch.setIdBranch(saleBranchId);
 
         // ── 3. Determinar status inicial ───────────────────────────────────────
         SaleStatus initialStatus = (request.getPaymentType() == PaymentType.CREDIT)
@@ -130,7 +138,7 @@ public class SalesService {
 
             int updated = inventoryService.decrementStock(
                     item.getProductId(),
-                    currentUser.getIdBranch(),
+                    item.getBranchId(),
                     item.getQuantity());
 
             if (updated == 0) {
@@ -141,7 +149,7 @@ public class SalesService {
 
             inventoryService.recordSaleMovement(
                     item.getProductId(),
-                    currentUser.getIdBranch(),
+                    item.getBranchId(),
                     currentUser.getIdUser(),
                     item.getQuantity(),
                     saved.getIdSale());
