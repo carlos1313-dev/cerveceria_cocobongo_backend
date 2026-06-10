@@ -5,7 +5,7 @@ import java.math.BigDecimal;
 import lombok.Data;
 
 /**
- * Línea de detalle en la respuesta.
+ * Línea de detalle en la respuesta — con valores en ambas monedas.
  */
 @Data
 public class SaleDetailResponse {
@@ -13,6 +13,10 @@ public class SaleDetailResponse {
     private Integer    productId;
     private String     productName;
     private Integer    quantity;
-    private BigDecimal unitPrice;
-    private BigDecimal subtotal;
+ 
+    // Precio unitario y subtotal en ambas monedas
+    private BigDecimal unitPriceUsd;
+    private BigDecimal unitPriceVes;
+    private BigDecimal subtotalUsd;
+    private BigDecimal subtotalVes;
 }

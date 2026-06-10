@@ -1,18 +1,9 @@
 package com.cocobongo.cerveceria.sales.dto;
 
 import java.util.List;
-
-import com.cocobongo.cerveceria.sales.entities.PaymentType;
 import jakarta.validation.Valid;
 import jakarta.validation.constraints.NotEmpty;
-import jakarta.validation.constraints.NotNull;
 import lombok.Data;
-import com.cocobongo.cerveceria.sales.entities.Currency;
-import com.cocobongo.cerveceria.sales.entities.SaleStatus;
-import jakarta.validation.constraints.DecimalMin;
-import java.math.BigDecimal;
-import java.time.LocalDateTime;
-
 
 /**
  * POST /api/v1/sales
