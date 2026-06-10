@@ -12,7 +12,7 @@ public class SaleItemRequest {
  
     @NotNull(message = "El id del producto es obligatorio")
     private Integer productId;
-
+ 
     @NotNull(message = "La sucursal del producto es obligatoria")
     private Integer branchId;
  
