@@ -56,7 +56,6 @@ public class ReportsService {
                 .branchName(sale.getBranch().getName())
                 .clientName(sale.getClient()   != null ? sale.getClient().getName() : null)
                 .registeredBy(sale.getUser()   != null ? sale.getUser().getName()   : null)
-                .paymentType(sale.getPaymentType())
                 .status(sale.getStatus())
                 .build());
     }
