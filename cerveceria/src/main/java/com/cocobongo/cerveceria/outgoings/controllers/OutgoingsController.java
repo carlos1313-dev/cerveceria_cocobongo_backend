@@ -15,6 +15,7 @@ import com.cocobongo.cerveceria.outgoings.dto.BalanceReport;
 import com.cocobongo.cerveceria.outgoings.dto.OutgoingRequestDTO;
 import com.cocobongo.cerveceria.outgoings.dto.OutgoingResponseDTO;
 import com.cocobongo.cerveceria.outgoings.services.OutgoingsService;
+import com.cocobongo.cerveceria.users.entities.UserEntity;
 
 import jakarta.validation.Valid;
 import lombok.RequiredArgsConstructor;
@@ -24,6 +25,7 @@ import org.springframework.web.bind.annotation.PostMapping;
 import org.springframework.web.bind.annotation.PutMapping;
 import org.springframework.web.bind.annotation.RequestBody;
 import org.springframework.web.bind.annotation.RequestParam;
+
 
 @PreAuthorize("hasRole('ADMIN')")
 @RestController
@@ -35,8 +37,8 @@ public class OutgoingsController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<OutgoingResponseDTO>> create(
-            @Valid @RequestBody OutgoingRequestDTO request) {
-        OutgoingResponseDTO newOutgoing = outgoings.create(request);
+            @Valid @RequestBody OutgoingRequestDTO request, UserEntity currentUser) {
+        OutgoingResponseDTO newOutgoing = outgoings.create(request, currentUser);
         return ResponseEntity.status(201).body(ApiResponse.ok("Gasto creado", newOutgoing));
     }
 
@@ -55,8 +57,8 @@ public class OutgoingsController {
 
     @PutMapping("/{id}")
     public ResponseEntity<ApiResponse<OutgoingResponseDTO>> update(@PathVariable Integer id,
-            @Valid @RequestBody OutgoingRequestDTO uOutgoing) {
-        OutgoingResponseDTO upOutgoing = outgoings.update(uOutgoing, id);
+            @Valid @RequestBody OutgoingRequestDTO uOutgoing, UserEntity currentUser) {
+        OutgoingResponseDTO upOutgoing = outgoings.update(uOutgoing, id, currentUser);
         return ResponseEntity.ok(ApiResponse.ok("Gasto actualizado", upOutgoing));
     }
 
