@@ -57,14 +57,16 @@ public final class CurrencyConverter {
      * @param rate    tasa BCV vigente (bolívares por 1 USD)
      * @return precio de venta sugerido en VES, redondeado al múltiplo de 10 ↑
      */
-    public static BigDecimal calculateSellingPriceVes(BigDecimal costUsd,
+    public static BigDecimal calculateSellingPriceVes(BigDecimal priceUsd,
                                                        BigDecimal rate) {
-        // 1. Precio de venta en USD con margen del 30%
-        BigDecimal sellingUsd = costUsd.multiply(new BigDecimal("1.30"));
+
+        if (priceUsd == null || rate == null) return BigDecimal.ZERO;
+
+        //BigDecimal sellingUsd = costUsd.multiply(new BigDecimal("1.30"));
  
         // 2. Convertir a bolívares con spread de 5 sobre la tasa
         BigDecimal rateWithSpread = rate.add(new BigDecimal("5"));
-        BigDecimal rawVes = sellingUsd.multiply(rateWithSpread);
+        BigDecimal rawVes = priceUsd.multiply(rateWithSpread);
  
         // 3. Redondear al múltiplo de 10 hacia arriba más cercano
         return roundUpToNearest10(rawVes);
