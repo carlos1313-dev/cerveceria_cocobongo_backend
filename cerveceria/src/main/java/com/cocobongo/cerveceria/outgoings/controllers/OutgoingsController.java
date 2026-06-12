@@ -7,6 +7,7 @@ import org.springframework.data.domain.Pageable;
 import org.springframework.data.web.PageableDefault;
 import org.springframework.http.ResponseEntity;
 import org.springframework.security.access.prepost.PreAuthorize;
+import org.springframework.security.core.annotation.AuthenticationPrincipal;
 import org.springframework.web.bind.annotation.RequestMapping;
 import org.springframework.web.bind.annotation.RestController;
 
@@ -37,7 +38,9 @@ public class OutgoingsController {
 
     @PostMapping("/register")
     public ResponseEntity<ApiResponse<OutgoingResponseDTO>> create(
-            @Valid @RequestBody OutgoingRequestDTO request, UserEntity currentUser) {
+            @Valid @RequestBody OutgoingRequestDTO request,
+            @AuthenticationPrincipal UserEntity currentUser) {
+        
         OutgoingResponseDTO newOutgoing = outgoings.create(request, currentUser);
         return ResponseEntity.status(201).body(ApiResponse.ok("Gasto creado", newOutgoing));
     }
@@ -47,7 +50,6 @@ public class OutgoingsController {
             @PageableDefault(size = 20, sort = "idOutgoing") Pageable pageable) {
         Page<OutgoingResponseDTO> page = outgoings.findAll(pageable);
         return ResponseEntity.ok(ApiResponse.ok(page));
-
     }
 
     @GetMapping("/{id}")
@@ -56,16 +58,21 @@ public class OutgoingsController {
     }
 
     @PutMapping("/{id}")
-    public ResponseEntity<ApiResponse<OutgoingResponseDTO>> update(@PathVariable Integer id,
-            @Valid @RequestBody OutgoingRequestDTO uOutgoing, UserEntity currentUser) {
+    public ResponseEntity<ApiResponse<OutgoingResponseDTO>> update(
+            @PathVariable Integer id,
+            @Valid @RequestBody OutgoingRequestDTO uOutgoing,
+            @AuthenticationPrincipal UserEntity currentUser) {
+        
         OutgoingResponseDTO upOutgoing = outgoings.update(uOutgoing, id, currentUser);
         return ResponseEntity.ok(ApiResponse.ok("Gasto actualizado", upOutgoing));
     }
 
     @GetMapping("/balance")
-    public ResponseEntity<ApiResponse<BalanceReport>> genBalance(@RequestParam LocalDateTime inicio,
-            @RequestParam LocalDateTime fin, @RequestParam Integer idBranch) {
-                return ResponseEntity.ok(ApiResponse.ok("Balance de la sucursal", outgoings.generarBalance(inicio, fin, idBranch)));
+    public ResponseEntity<ApiResponse<BalanceReport>> genBalance(
+            @RequestParam LocalDateTime inicio,
+            @RequestParam LocalDateTime fin,
+            @RequestParam Integer idBranch) {
+        return ResponseEntity.ok(ApiResponse.ok("Balance de la sucursal",
+                outgoings.generarBalance(inicio, fin, idBranch)));
     }
-
 }
