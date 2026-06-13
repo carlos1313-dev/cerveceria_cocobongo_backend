@@ -13,7 +13,7 @@ import java.math.BigDecimal;
  * Un proveedor "genera ventas" cuando sus productos aparecen en sale_detail.
  */
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
-class ProviderSalesDTO {
+public class ProviderSalesDTO {
     private Integer    idProvider;
     private String     providerName;
     private Long       productsSold;    // unidades vendidas de todos sus productos

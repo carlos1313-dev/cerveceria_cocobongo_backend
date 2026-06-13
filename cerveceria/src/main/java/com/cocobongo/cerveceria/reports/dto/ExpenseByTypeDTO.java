@@ -10,7 +10,7 @@ import java.math.BigDecimal;
  * Gasto total por tipo dentro del período — usado dentro de NetBalanceDTO.
  */
 @Data @Builder @NoArgsConstructor @AllArgsConstructor
-class ExpenseByTypeDTO {
+public class ExpenseByTypeDTO {
     private String     type;   // PERSONAL, MAINTENANCE, RENT, etc.
     private BigDecimal total;
 }
