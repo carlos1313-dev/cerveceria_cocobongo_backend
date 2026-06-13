@@ -24,7 +24,7 @@ public class SaleReportDTO {
     private String        branchName;      // sucursal donde se realizó la venta
     private String        registeredBy;    // usuario que registró la venta
     private String        clientName;      // nombre del cliente, puede ser null si es venta al público
-    private PaymentType   paymentType;     // forma de pago utilizada
+         // forma de pago utilizada
     private SaleStatus    status;          // estado de la venta
     private BigDecimal    total;           // total facturado de la venta
 

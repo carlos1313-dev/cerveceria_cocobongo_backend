@@ -12,6 +12,7 @@ import org.springframework.stereotype.Repository;
 import com.cocobongo.cerveceria.clients.entities.ClientEntity;
 import com.cocobongo.cerveceria.sales.entities.PaymentType;
 import com.cocobongo.cerveceria.sales.entities.SaleStatus;
+import com.cocobongo.cerveceria.sales.entities.SaleEntity;
 
 @Repository
 public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
@@ -27,8 +28,9 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
 
     // Suma de ventas a crédito no anuladas para calcular deuda total
     @Query("SELECT COALESCE(SUM(s.total), 0) FROM SaleEntity s " +
+           "JOIN s.payments p " +
            "WHERE s.client.idClient = :idClient " +
-           "AND s.paymentType = :paymentType " +
+           "AND p.method = :paymentType " +
            "AND s.status <> :cancelled")
     BigDecimal sumCreditSalesByClient(
             @Param("idClient")    Integer       idClient,
@@ -36,11 +38,12 @@ public interface ClientRepository extends JpaRepository<ClientEntity, Integer> {
             @Param("cancelled")   SaleStatus  cancelled);
 
     // Ventas a crédito de un cliente para el estado de cuenta
-    @Query("SELECT s FROM SaleEntity s " +
+    @Query("SELECT DISTINCT s FROM SaleEntity s " +
+           "JOIN s.payments p " +
            "WHERE s.client.idClient = :idClient " +
-           "AND s.paymentType = :paymentType " +
+           "AND p.method = :paymentType " +
            "ORDER BY s.saleDate DESC")
-    List<com.cocobongo.cerveceria.sales.entities.SaleEntity> findCreditSalesByClient(
+    List<SaleEntity> findCreditSalesByClient(
             @Param("idClient")    Integer       idClient,
             @Param("paymentType") PaymentType paymentType);
 }

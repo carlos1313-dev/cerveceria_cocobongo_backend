@@ -1,5 +1,6 @@
 package com.cocobongo.cerveceria.inventory.services;
 
+import java.math.BigDecimal;
 import java.time.LocalDateTime;
 import java.util.List;
 import java.util.Set;
@@ -14,6 +15,8 @@ import com.cocobongo.cerveceria.branches.dto.BranchResponseDTO;
 import com.cocobongo.cerveceria.branches.services.BranchesService;
 import com.cocobongo.cerveceria.common.exception.BusinessException;
 import com.cocobongo.cerveceria.common.exception.ResourceNotFoundException;
+import com.cocobongo.cerveceria.common.utils.CurrencyConverter;
+import com.cocobongo.cerveceria.exchangerate.services.ExchangeRateService;
 import com.cocobongo.cerveceria.inventory.dto.InventoryMovementRequestDTO;
 import com.cocobongo.cerveceria.inventory.dto.InventoryMovementResponseDTO;
 import com.cocobongo.cerveceria.inventory.dto.InventoryResponseDTO;
@@ -45,17 +48,20 @@ public class InventoryService {
     private final InventoryMovementRepository inventoryMovementRepository;
     private final InventoryRepository inventoryRepository;
     private final BranchesService branchesService;
+    private final ExchangeRateService exchangeRateService;
 
     public InventoryService(ProviderRepository providerRepository,
             ProductRepository productRepository,
             InventoryRepository inventoryRepository,
             InventoryMovementRepository movementRepository,
-            BranchesService branchesService) {
+            BranchesService branchesService,
+            ExchangeRateService exchangeRateService) {
         this.providerRepository = providerRepository;
         this.productRepository = productRepository;
         this.inventoryRepository = inventoryRepository;
         this.inventoryMovementRepository = movementRepository;
         this.branchesService = branchesService;
+        this.exchangeRateService = exchangeRateService;
     }
 
     // Obtiene todos los proveedores activos, con opción de búsqueda por nombre
@@ -450,25 +456,31 @@ public class InventoryService {
             return null;
         }
 
+        // Obtener la tasa de cambio actual
+        BigDecimal rate = exchangeRateService.getCurrentRate();
+
+        // Construir el DTO con los nuevos campos calculados
         return ProductResponseDTO.builder()
                 .idProduct(entity.getIdProduct())
-
                 .providerId(
                         entity.getProvider() != null
                                 ? entity.getProvider().getIdProvider()
                                 : null)
-
                 .providerName(
                         entity.getProvider() != null
                                 ? entity.getProvider().getName()
                                 : null)
-
                 .name(entity.getName())
                 .description(entity.getDescription())
                 .type(entity.getType())
                 .cost(entity.getCost())
                 .price(entity.getPrice())
                 .isActive(entity.getIsActive())
+                // NUEVOS CAMPOS VES
+                .costVes(CurrencyConverter.usdToVes(entity.getCost(), rate))
+                .priceVes(CurrencyConverter.usdToVes(entity.getPrice(), rate))
+                .suggestedPriceVes(CurrencyConverter.calculateSellingPriceVes(entity.getCost(), rate))
+                .exchangeRate(rate)
                 .build();
     }
 }
