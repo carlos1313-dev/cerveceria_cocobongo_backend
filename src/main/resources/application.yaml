@@ -1,12 +1,14 @@
 # =============================================
 # Configuración para Cervecería Cocobongo
-# Spring Boot 3.4.1 | PostgreSQL | JPA
+# Spring Boot 3.4.1 | PostgreSQL (Neon) | JPA
+# Desplegado en Railway
 # =============================================
 
 # ─── PERFIL ACTIVO ───────────────────────────
+# Railway debe setear SPRING_PROFILES_ACTIVE=prod
 spring:
   profiles:
-    active: dev
+    active: ${SPRING_PROFILES_ACTIVE:dev}
 
 ---
 # =============================================
@@ -25,32 +27,39 @@ spring:
     driver-class-name: org.postgresql.Driver
     hikari:
       maximum-pool-size: 10
-      minimum-idle: 5
-      idle-timeout: 300000
-      connection-timeout: 20000
-      max-lifetime: 1200000
+      minimum-idle: 2
+      idle-timeout: 600000
+      connection-timeout: 30000
+      max-lifetime: 600000
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
+      leak-detection-threshold: 60000  # Detecta conexiones olvidadas
 
   # ─── JPA / HIBERNATE ───────────────────────
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: update          # Crea/actualiza tablas automáticamente
-    show-sql: true              # Muestra SQL en consola
+      ddl-auto: update          # Solo en desarrollo
+    show-sql: true
     properties:
       hibernate:
-        format_sql: true        # Formatea el SQL para mejor lectura
-        use_sql_comments: true  # Añade comentarios al SQL generado
+        format_sql: true
+        use_sql_comments: true
+        jdbc:
+          batch_size: 20
+          fetch_size: 100
 
   # ─── DEVTOOLS ──────────────────────────────
   devtools:
     restart:
       enabled: true
+      additional-paths: src/main/java
     livereload:
       enabled: true
 
   # ─── THYMELEAF ─────────────────────────────
   thymeleaf:
-    cache: false                # Desactiva caché para ver cambios al instante
+    cache: false
     mode: HTML
     encoding: UTF-8
     prefix: classpath:/templates/
@@ -59,7 +68,8 @@ spring:
 # ─── APP CUSTOM PROPERTIES ──────────────────
 app:
   jwt:
-    secret: ${JWT_SECRET:dev_secret_key_cambiar_en_produccion_minimo_256_bits}
+    secret: ${JWT_SECRET:dev_secret_key_cambiar_en_produccion_minimo_32_caracteres_123456}
+    expiration-hours: 24  
 
 # ─── LOGGING ─────────────────────────────────
 logging:
@@ -68,74 +78,121 @@ logging:
     com.cocobongo.cerveceria: DEBUG
     org.springframework.security: DEBUG
     org.hibernate.SQL: DEBUG
-    org.hibernate.type.descriptor.sql.BasicBinder: TRACE  # Muestra valores de parámetros
+    org.hibernate.type.descriptor.sql.BasicBinder: TRACE
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
 # ─── SERVIDOR ────────────────────────────────
 server:
-  port: 8082
+  port: ${PORT:8082}
   servlet:
     context-path: /
   error:
-    include-stacktrace: always   # Muestra stacktrace en errores (solo dev)
+    include-stacktrace: never  # 🔴 CRÍTICO: No exponer stacktrace ni en dev
+    include-message: always
+    include-binding-errors: always
 
 ---
 # =============================================
 # PERFIL: PRODUCCIÓN (prod)
+# Para Railway + Neon
 # =============================================
 spring:
   config:
     activate:
       on-profile: prod
 
+  # ─── BASE DE DATOS (Neon con pooler) ───────
   datasource:
-    url: ${DATABASE_URL}            # Variable de entorno (requerida)
-    username: ${DATABASE_USERNAME}  # Variable de entorno (requerida)
-    password: ${DATABASE_PASSWORD}  # Variable de entorno (requerida)
+    url: ${DATABASE_URL}
+    username: ${DATABASE_USERNAME}
+    password: ${DATABASE_PASSWORD}
+    driver-class-name: org.postgresql.Driver
     hikari:
-      maximum-pool-size: 20
-      minimum-idle: 10
+      # Optimizado para Neon pooler
+      maximum-pool-size: ${DB_POOL_SIZE:10}
+      minimum-idle: 2
+      idle-timeout: 300000
+      connection-timeout: 30000
+      max-lifetime: 600000
+      connection-test-query: SELECT 1
+      validation-timeout: 5000
+      leak-detection-threshold: 0  # Deshabilitado en prod por rendimiento
 
+  # ─── JPA / HIBERNATE ───────────────────────
   jpa:
     database-platform: org.hibernate.dialect.PostgreSQLDialect
     hibernate:
-      ddl-auto: validate            # Solo valida, nunca modifica esquema
+      ddl-auto: validate            # 🔴 NUNCA usar update en producción
     show-sql: false
     properties:
       hibernate:
         format_sql: false
+        jdbc:
+          batch_size: 20
+          fetch_size: 100
+        order_inserts: true
+        order_updates: true
 
+  # ─── THYMELEAF ─────────────────────────────
   thymeleaf:
-    cache: true                     # Caché activado en producción
+    cache: true
+    mode: HTML
+    encoding: UTF-8
 
+  # ─── DEVTOOLS ──────────────────────────────
   devtools:
     restart:
-      enabled: false                # DevTools desactivado en producción
+      enabled: false
 
 # ─── APP CUSTOM PROPERTIES ──────────────────
 app:
   jwt:
-    secret: ${JWT_SECRET}           # Variable de entorno (requerida)
+    secret: ${JWT_SECRET:temporal_railway_secret_2026_cambiar_antes_produccion}  # Requerido en producción
+    expiration-hours: ${JWT_EXPIRATION_HOURS:24}
 
+# ─── LOGGING ─────────────────────────────────
 logging:
   level:
     root: WARN
     com.cocobongo.cerveceria: INFO
+    org.springframework.web: WARN
+    org.hibernate: WARN
+  pattern:
+    console: "%d{yyyy-MM-dd HH:mm:ss} - %msg%n"
 
+# ─── SERVIDOR (Railway requiere PORT) ────────
 server:
-  port: ${PORT:8080}
+  port: ${PORT:8080}  #  CRÍTICO: Railway asigna puerto dinámico
+  servlet:
+    context-path: /
   error:
-    include-stacktrace: never       # No exponer stacktrace al usuario
+    include-stacktrace: never
+    include-message: never
+    include-binding-errors: never
+  compression:
+    enabled: true
+    mime-types: application/json,application/xml,text/html,text/xml,text/plain
 
----
-# =============================================
-# CONFIGURACIONES COMUNES
-# =============================================
+# ─── MANAGEMENT (Actuator - Opcional) ────────
+management:
+  endpoints:
+    web:
+      exposure:
+        include: health,info
+      base-path: /actuator
+  endpoint:
+    health:
+      show-details: when-authorized
+      show-components: always
+  info:
+    env:
+      enabled: true
 
-# ─── SPRING SECURITY ─────────────────────────
-# Nota: La configuración detallada va en clases Java @Configuration
-# Aquí puedes sobrescribir valores por defecto si lo deseas:
-# spring:
-#   security:
-#     user:
-#       name: admin
-#       password: ${ADMIN_PASSWORD:admin123}
+# ─── INFO (para health check) ────────────────
+info:
+  app:
+    name: Cerveceria Cocobongo
+    version: 1.0.0
+    environment: production
+    database: PostgreSQL (Neon)
