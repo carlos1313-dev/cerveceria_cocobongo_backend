@@ -163,7 +163,8 @@ logging:
 
 # ─── SERVIDOR (Railway requiere PORT) ────────
 server:
-  port: ${PORT:8080}  #  CRÍTICO: Railway asigna puerto dinámico
+  port: ${PORT:8080}
+  address: 0.0.0.0      # ← Necesario para Railway  #  CRÍTICO: Railway asigna puerto dinámico
   servlet:
     context-path: /
   error:
