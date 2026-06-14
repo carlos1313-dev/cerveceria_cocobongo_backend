@@ -38,7 +38,7 @@ public class OutgoingEntity {
     @Column(name = "type", nullable = false, length = 20)
     private OutgoingType type;
  
-    @Column(name = "date", nullable = false)
+    @Column(name = "date", nullable = false, columnDefinition = "date")
     private LocalDateTime date;
  
     @Column(name = "total", nullable = false, precision = 10, scale = 2)
