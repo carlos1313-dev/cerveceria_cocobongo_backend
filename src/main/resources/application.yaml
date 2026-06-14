@@ -103,7 +103,7 @@ spring:
       on-profile: prod
 
   # ─── BASE DE DATOS (Neon con pooler) ───────
-  datasource:
+  #datasource:
     
     hikari:
       # Optimizado para Neon pooler
