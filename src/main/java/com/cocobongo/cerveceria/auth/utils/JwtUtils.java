@@ -1,23 +1,25 @@
 package com.cocobongo.cerveceria.auth.utils;
  
+import java.nio.charset.StandardCharsets;
+import java.time.LocalDateTime;
+import java.util.Date;
+
+import javax.crypto.SecretKey;
+
+import org.springframework.beans.factory.annotation.Value;
+import org.springframework.stereotype.Component;
+
 import com.cocobongo.cerveceria.users.entities.UserEntity;
+
 import io.jsonwebtoken.Claims;
 import io.jsonwebtoken.Jwts;
 import io.jsonwebtoken.security.Keys;
 import jakarta.annotation.PostConstruct;
-
-import org.springframework.beans.factory.annotation.Value;
-import org.springframework.stereotype.Component;
- 
-import javax.crypto.SecretKey;
-import java.nio.charset.StandardCharsets;
-import java.time.LocalDateTime;
-import java.util.Date;
  
 @Component
 public class JwtUtils {
  
-    @Value("${app.jwt.secret}")
+    @Value("${app.jwt.secret:o7nKtvcO+DrAtnrpGy0xiYHmAKlGgs3D+dP2Izuamwo=}")
     private String secret;
  
     @Value("${app.jwt.expiration-hours:24}")
