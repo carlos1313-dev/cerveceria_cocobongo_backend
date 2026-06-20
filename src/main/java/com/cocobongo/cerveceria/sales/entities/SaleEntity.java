@@ -11,6 +11,7 @@ import lombok.*;
  
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
+import java.time.ZoneId;
 import java.util.ArrayList;
 import java.util.List;
  
@@ -87,7 +88,7 @@ public class SaleEntity {
  
     @PrePersist
     protected void onCreate() {
-        this.saleDate = LocalDateTime.now();
+        this.saleDate = LocalDateTime.now(ZoneId.of("UTC"));
     }
  
     public void addDetail(SaleDetailEntity detail) {
