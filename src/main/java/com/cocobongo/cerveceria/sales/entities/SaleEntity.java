@@ -11,7 +11,7 @@ import lombok.*;
  
 import java.math.BigDecimal;
 import java.time.LocalDateTime;
-import java.time.ZoneId;
+import org.hibernate.annotations.CreationTimestamp;
 import java.util.ArrayList;
 import java.util.List;
  
@@ -60,6 +60,7 @@ public class SaleEntity {
     private ExchangeRateEntity rate;
  
     @Column(name = "sale_date", nullable = false)
+    @CreationTimestamp
     private LocalDateTime saleDate;
  
     // Total en USD — suma de subtotales de sale_detail
@@ -86,10 +87,12 @@ public class SaleEntity {
                orphanRemoval = true, fetch = FetchType.LAZY)
     private List<SalePaymentEntity> payments = new ArrayList<>();
  
+    /* 
     @PrePersist
     protected void onCreate() {
         this.saleDate = LocalDateTime.now(ZoneId.of("UTC"));
     }
+    */
  
     public void addDetail(SaleDetailEntity detail) {
         details.add(detail);

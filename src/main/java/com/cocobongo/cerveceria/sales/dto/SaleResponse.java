@@ -27,7 +27,7 @@ public class SaleResponse {
     private BigDecimal        totalUsd;
     private BigDecimal        totalVes;        // totalUsd * rate de la venta
     private BigDecimal        exchangeRate;    // tasa BCV usada en esta venta
- 
+
     private List<SaleDetailResponse>  details;
     private List<PaymentResponse>     payments;
 }
