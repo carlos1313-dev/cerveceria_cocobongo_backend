@@ -43,6 +43,7 @@ public class SecurityConfig {
             "http://127.0.0.1:5500",
             "http://127.0.0.1:5501",
             "https://cerveceriacocobongobackend-production.up.railway.app",
+            "https://cerveceria-cocobongo-backend.onrender.com/",
             "https://cerveceria-cocobongo-frontend.vercel.app"
         ));
         config.setAllowedMethods(List.of("GET", "POST", "PUT", "DELETE", "OPTIONS" , "PATCH"));
@@ -69,7 +70,9 @@ public class SecurityConfig {
                         "/api/v1/auth/login",
                         "/api/v1/auth/register",
                         "/api/v1/auth/forgot-password",
-                        "/api/v1/auth/reset-password"
+                        "/api/v1/auth/reset-password",
+                        "/actuator/health",
+                        "/health"
                 ).permitAll()
  
                 // Solo ADMIN puede gestionar usuarios
