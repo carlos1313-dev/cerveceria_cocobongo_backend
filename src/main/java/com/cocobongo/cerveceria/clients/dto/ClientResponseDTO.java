@@ -11,6 +11,7 @@ public class ClientResponseDTO {
     private String name;
     private String telephone;
     private String email;
+    private String address;
     private BigDecimal balance;
     private Boolean isActive;
 
