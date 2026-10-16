@@ -64,7 +64,5 @@ public class ClientEntity {
 	@PositiveOrZero(message = "El saldo no puede ser negativo")
 	private BigDecimal balance = BigDecimal.ZERO;
 
-	@Builder.Default
-	@Column(name = "is_active", nullable = false)
-	private Boolean isActive = true;
+	
 }
