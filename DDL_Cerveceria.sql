@@ -125,6 +125,7 @@ CREATE TABLE client (
     name       VARCHAR(100)  NOT NULL,
     telephone  VARCHAR(20),
     email      VARCHAR(100),
+    address    TEXT,
     -- CAMPO CALCULADO: no actualizar con UPDATE directo.
     -- balance = SUM(sale.total WHERE payment_type='CREDIT') - SUM(installment.amount)
     -- Actualizar siempre desde la lógica de aplicación al registrar ventas o abonos.
@@ -140,6 +141,9 @@ CREATE TABLE client (
         CHECK (telephone IS NULL
                OR telephone ~ '^[0-9\s\+\-\(\)]{7,20}$')
 );
+
+-- Migración para bases existentes:
+-- ALTER TABLE client ADD COLUMN address TEXT;
 
 
 -- =============================================================================

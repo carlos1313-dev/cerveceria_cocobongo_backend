@@ -53,6 +53,9 @@ public class ClientEntity {
 	@Email(message = "El formato del email no es válido")
 	private String email;
 
+	@Column(name = "address", columnDefinition = "TEXT")
+	private String address;
+
 	/**
      * Saldo pendiente de pago.
      * NUNCA modificar con setBalance() directamente desde fuera del servicio.

@@ -52,6 +52,7 @@ public class ClientService {
                 .name(request.getName())
                 .telephone(request.getTelephone())
                 .email(request.getEmail())
+                .address(request.getAddress())
                 .balance(request.getBalance() != null ? request.getBalance() : BigDecimal.ZERO)
                 .isActive(isActive)
                 .build();
@@ -100,6 +101,7 @@ public class ClientService {
         client.setName(request.getName());
         client.setTelephone(request.getTelephone());
         client.setEmail(request.getEmail());
+        client.setAddress(request.getAddress());
         if (request.getIsActive() != null) {
             client.setIsActive(request.getIsActive());
         }
@@ -242,6 +244,7 @@ public class ClientService {
         dto.setName(client.getName());
         dto.setTelephone(client.getTelephone());
         dto.setEmail(client.getEmail());
+        dto.setAddress(client.getAddress());
         dto.setBalance(client.getBalance());
         dto.setIsActive(client.getIsActive());
         return dto;

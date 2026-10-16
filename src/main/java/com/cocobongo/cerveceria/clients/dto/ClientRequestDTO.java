@@ -18,6 +18,8 @@ public class ClientRequestDTO {
     @Email(message = "El formato del email no es válido")
     private String email;
 
+    private String address;
+
     @PositiveOrZero(message = "El saldo no puede ser negativo")
     private BigDecimal balance;
 
